@@ -14,6 +14,7 @@ type Post = {
   assignee: string | null;
   caption: string | null;
   design_notes: string | null;
+  media_url: string | null;
 };
 
 export default function Home() {
@@ -25,6 +26,7 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
   const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
+  const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [showForm, setShowForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -39,6 +41,7 @@ export default function Home() {
     assignee: "",
     caption: "",
     design_notes: "",
+    media_url: "",
   });
 
   const platforms = [
@@ -49,6 +52,8 @@ export default function Home() {
     "TikTok",
     "Twitter/X",
   ];
+
+  const statuses = ["All Statuses", "Draft", "Scheduled", "Published"];
 
   const programs = ["ECEA", "Business", "AI Web Design", "French", "CIRA Brand"];
 
@@ -159,6 +164,7 @@ export default function Home() {
       assignee: "",
       caption: "",
       design_notes: "",
+      media_url: "",
     });
   }
 
@@ -179,6 +185,7 @@ export default function Home() {
       assignee: editingPost.assignee,
       caption: editingPost.caption,
       design_notes: editingPost.design_notes,
+      media_url: editingPost.media_url,
     };
 
     const { data, error } = await supabase
@@ -256,11 +263,15 @@ export default function Home() {
 
     return posts.filter((post) => {
       const sameDate = post.post_date === dateString;
+
       const samePlatform =
         selectedPlatform === "All Platforms" ||
         post.platform === selectedPlatform;
 
-      return sameDate && samePlatform;
+      const sameStatus =
+        selectedStatus === "All Statuses" || post.status === selectedStatus;
+
+      return sameDate && samePlatform && sameStatus;
     });
   }
 
@@ -351,20 +362,44 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        {platforms.map((platform) => (
-          <button
-            key={platform}
-            onClick={() => setSelectedPlatform(platform)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-              selectedPlatform === platform
-                ? "bg-black text-white"
-                : "bg-gray-100 text-black"
-            }`}
-          >
-            {platform}
-          </button>
-        ))}
+      <div className="mt-6">
+        <p className="mb-2 text-sm font-semibold text-gray-600">Platform</p>
+
+        <div className="flex flex-wrap gap-3">
+          {platforms.map((platform) => (
+            <button
+              key={platform}
+              onClick={() => setSelectedPlatform(platform)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+                selectedPlatform === platform
+                  ? "bg-black text-white"
+                  : "bg-gray-100 text-black"
+              }`}
+            >
+              {platform}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <p className="mb-2 text-sm font-semibold text-gray-600">Status</p>
+
+        <div className="flex flex-wrap gap-3">
+          {statuses.map((status) => (
+            <button
+              key={status}
+              onClick={() => setSelectedStatus(status)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+                selectedStatus === status
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-black"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-6 flex items-center justify-between">
@@ -543,6 +578,15 @@ export default function Home() {
                 placeholder="Design notes"
                 rows={3}
               />
+
+              <input
+                value={newPost.media_url}
+                onChange={(e) =>
+                  setNewPost({ ...newPost, media_url: e.target.value })
+                }
+                className="w-full rounded-lg border border-gray-300 p-2"
+                placeholder="Media or Canva link"
+              />
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
@@ -598,6 +642,24 @@ export default function Home() {
                 <p className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3">
                   {selectedPost.design_notes || "No design notes added."}
                 </p>
+              </div>
+
+              <div>
+                <strong>Media / Canva Link:</strong>
+                {selectedPost.media_url ? (
+                  <a
+                    href={selectedPost.media_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 block rounded-lg bg-gray-100 p-3 text-blue-600 underline"
+                  >
+                    Open media link
+                  </a>
+                ) : (
+                  <p className="mt-1 rounded-lg bg-gray-100 p-3">
+                    No media link added.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -727,6 +789,18 @@ export default function Home() {
                 className="w-full rounded-lg border border-gray-300 p-2"
                 placeholder="Design notes"
                 rows={3}
+              />
+
+              <input
+                value={editingPost.media_url || ""}
+                onChange={(e) =>
+                  setEditingPost({
+                    ...editingPost,
+                    media_url: e.target.value,
+                  })
+                }
+                className="w-full rounded-lg border border-gray-300 p-2"
+                placeholder="Media or Canva link"
               />
             </div>
 
