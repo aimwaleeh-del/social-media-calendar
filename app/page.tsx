@@ -31,6 +31,7 @@ export default function Home() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
+  const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
 
   const [newPost, setNewPost] = useState({
     title: "",
@@ -256,10 +257,15 @@ export default function Home() {
     return days;
   }, [year, month]);
 
+  function makeDateString(day: number) {
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(
+      2,
+      "0"
+    )}`;
+  }
+
   function postsForDay(day: number) {
-    const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
+    const dateString = makeDateString(day);
 
     return posts.filter((post) => {
       const sameDate = post.post_date === dateString;
@@ -273,6 +279,36 @@ export default function Home() {
 
       return sameDate && samePlatform && sameStatus;
     });
+  }
+
+  async function movePostToDate(postId: string, newDate: string) {
+    const oldPosts = posts;
+
+    setPosts(
+      posts.map((post) =>
+        post.id === postId ? { ...post, post_date: newDate } : post
+      )
+    );
+
+    const { error } = await supabase
+      .from("posts")
+      .update({ post_date: newDate })
+      .eq("id", postId);
+
+    if (error) {
+      setPosts(oldPosts);
+      alert(
+        "Could not move post:\n\n" + (error.message || JSON.stringify(error))
+      );
+    }
+  }
+
+  function handleDrop(day: number) {
+    if (!draggedPostId) return;
+
+    const newDate = makeDateString(day);
+    movePostToDate(draggedPostId, newDate);
+    setDraggedPostId(null);
   }
 
   function previousMonth() {
@@ -362,6 +398,10 @@ export default function Home() {
         </div>
       </div>
 
+      <div className="mt-6 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+        Tip: drag a post card to another date to reschedule it.
+      </div>
+
       <div className="mt-6">
         <p className="mb-2 text-sm font-semibold text-gray-600">Platform</p>
 
@@ -436,7 +476,17 @@ export default function Home() {
         {calendarDays.map((day, index) => (
           <div
             key={index}
-            className="min-h-36 rounded-lg border border-gray-200 p-2"
+            onDragOver={(event) => {
+              if (day) event.preventDefault();
+            }}
+            onDrop={() => {
+              if (day) handleDrop(day);
+            }}
+            className={`min-h-36 rounded-lg border p-2 ${
+              day && draggedPostId
+                ? "border-blue-300 bg-blue-50"
+                : "border-gray-200 bg-white"
+            }`}
           >
             {day && (
               <>
@@ -448,8 +498,15 @@ export default function Home() {
                   {postsForDay(day).map((post) => (
                     <button
                       key={post.id}
-                      onClick={() => setSelectedPost(post)}
-                      className="w-full rounded-md bg-blue-600 p-2 text-left text-xs text-white"
+                      draggable
+                      onDragStart={() => setDraggedPostId(post.id)}
+                      onDragEnd={() => setDraggedPostId(null)}
+                      onClick={() => {
+                        if (!draggedPostId) setSelectedPost(post);
+                      }}
+                      className={`w-full cursor-move rounded-md bg-blue-600 p-2 text-left text-xs text-white transition ${
+                        draggedPostId === post.id ? "opacity-50" : "opacity-100"
+                      }`}
                     >
                       <div className="truncate font-semibold">
                         {post.platform} · {post.title}
