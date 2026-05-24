@@ -165,6 +165,13 @@ export default function Home() {
   ) {
     if (!file) return;
 
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload a JPG, PNG, or WEBP image.");
+      return;
+    }
+
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}-${Math.random()
       .toString(36)
@@ -895,7 +902,7 @@ function IGGridPreview({
             IG Grid Preview
           </h2>
           <p className="text-xs font-bold text-[#777]">
-            Upload images inside each post to preview your Instagram grid.
+            Upload 1080 × 1350 px images for the best 4:5 Instagram preview.
           </p>
         </div>
 
@@ -909,7 +916,7 @@ function IGGridPreview({
           <button
             key={post.id}
             onClick={() => setSelectedPost(post)}
-            className="group relative aspect-square overflow-hidden bg-[#d8d8d8] text-left"
+            className="group relative aspect-[4/5] overflow-hidden bg-[#d8d8d8] text-left"
           >
             {post.image_url ? (
               <img
@@ -956,7 +963,7 @@ function IGGridPreview({
         ))}
 
         {Array.from({ length: emptySlots }).map((_, index) => (
-          <div key={`empty-${index}`} className="aspect-square bg-[#d8d8d8]" />
+          <div key={`empty-${index}`} className="aspect-[4/5] bg-[#d8d8d8]" />
         ))}
       </div>
     </section>
@@ -993,6 +1000,8 @@ function PostDetailsModal({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const [imageBroken, setImageBroken] = useState(false);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
       <div className="max-h-[90vh] w-full max-w-xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
@@ -1045,12 +1054,46 @@ function PostDetailsModal({
               </button>
             </div>
 
-            {post.image_url && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onEdit}
+                className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
+              >
+                Edit / Replace Photo
+              </button>
+
+              {post.image_url && (
+                <a
+                  href={post.image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl bg-[#f4f6fb] px-3 py-2 text-xs font-black text-[#0d2560] underline"
+                >
+                  Open Image URL
+                </a>
+              )}
+            </div>
+
+            {post.image_url && !imageBroken ? (
               <img
                 src={post.image_url}
                 alt={post.title}
-                className="mb-4 aspect-square w-full rounded-2xl object-cover"
+                className="mb-4 aspect-[4/5] w-full rounded-2xl object-cover"
+                onError={() => setImageBroken(true)}
               />
+            ) : post.image_url && imageBroken ? (
+              <div className="mb-4 rounded-2xl border border-dashed border-[#e8453c]/40 bg-[#fff8f5] p-5 text-sm font-bold text-[#777]">
+                Image URL exists, but the image cannot be displayed. Click{" "}
+                <span className="text-[#e8453c]">Edit / Replace Photo</span> to
+                upload a JPG, PNG, or WEBP image again.
+              </div>
+            ) : (
+              <div className="mb-4 rounded-2xl bg-[#f4f6fb] p-5 text-sm font-bold text-[#777]">
+                No image uploaded yet. Click{" "}
+                <span className="text-[#e8453c]">Edit / Replace Photo</span> to
+                add one.
+              </div>
             )}
 
             <h2 className="cira-heading text-2xl font-black leading-tight text-[#0d2560]">
@@ -1282,9 +1325,13 @@ function PostFormModal({
               Upload / Replace Photo for IG Grid
             </p>
 
+            <p className="mb-3 text-xs font-bold text-[#777]">
+              Recommended Canva size: 1080 × 1350 px.
+            </p>
+
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               onChange={handleImageChange}
               className="w-full text-sm font-semibold text-[#777]"
             />
@@ -1300,7 +1347,7 @@ function PostFormModal({
                 <img
                   src={post.image_url}
                   alt="Post preview"
-                  className="aspect-square w-full rounded-2xl border border-[#e8eaf2] object-cover"
+                  className="aspect-[4/5] w-full rounded-2xl border border-[#e8eaf2] object-cover"
                   onError={() => {
                     alert(
                       "Image uploaded, but the image URL cannot be displayed. Check that the Supabase bucket is public."
@@ -1318,22 +1365,26 @@ function PostFormModal({
                 </a>
 
                 <button
-  type="button"
-  onClick={() => {
-    const confirmed = confirm("Remove this image from the post? Remember to click Save after removing.");
+                  type="button"
+                  onClick={() => {
+                    const confirmed = confirm(
+                      "Remove this image from the post? Remember to click Save after removing."
+                    );
 
-    if (confirmed) {
-      setPost({ ...post, image_url: "" });
-    }
-  }}
-  className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
->
-  Remove Photo
-</button>
+                    if (confirmed) {
+                      setPost({ ...post, image_url: "" });
+                    }
+                  }}
+                  className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
+                >
+                  Remove Photo
+                </button>
               </div>
             ) : (
-              <div className="mt-3 flex aspect-square w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-sm font-bold text-[#777]">
+              <div className="mt-3 flex aspect-[4/5] w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-center text-sm font-bold text-[#777]">
                 No image uploaded yet
+                <br />
+                1080 × 1350 preview
               </div>
             )}
           </div>
