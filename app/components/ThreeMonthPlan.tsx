@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type Post = {
   id: string;
   title: string;
@@ -25,10 +27,28 @@ type ThreeMonthPlanProps = {
   onAddPostForDate: (dateString: string) => void;
 };
 
-const planMonths = [
-  { label: "☀️ June", title: "June 2026", year: 2026, month: 5 },
-  { label: "🌤 July", title: "July 2026", year: 2026, month: 6 },
-  { label: "🌅 August", title: "August 2026", year: 2026, month: 7 },
+const months = [
+  {
+    label: "June",
+    display: "☀️ June 2026",
+    year: 2026,
+    month: 5,
+    defaultDate: "2026-06-01",
+  },
+  {
+    label: "July",
+    display: "🌤 July 2026",
+    year: 2026,
+    month: 6,
+    defaultDate: "2026-07-01",
+  },
+  {
+    label: "August",
+    display: "🌅 August 2026",
+    year: 2026,
+    month: 7,
+    defaultDate: "2026-08-01",
+  },
 ];
 
 export default function ThreeMonthPlan({
@@ -39,16 +59,16 @@ export default function ThreeMonthPlan({
   onMovePostToDate,
   onAddPostForDate,
 }: ThreeMonthPlanProps) {
-  const [activeMonth, setActiveMonth] = useStateSafe(0);
+  const [activeMonth, setActiveMonth] = useState(0);
 
-  const monthInfo = planMonths[activeMonth];
+  const selectedMonth = months[activeMonth];
 
   const monthPosts = posts
     .filter((post) => {
       const date = new Date(post.post_date + "T00:00:00");
       return (
-        date.getFullYear() === monthInfo.year &&
-        date.getMonth() === monthInfo.month
+        date.getFullYear() === selectedMonth.year &&
+        date.getMonth() === selectedMonth.month
       );
     })
     .sort((a, b) => a.post_date.localeCompare(b.post_date));
@@ -63,7 +83,7 @@ export default function ThreeMonthPlan({
         </p>
 
         <h2 className="cira-heading relative z-10 mt-1 text-3xl font-black leading-tight">
-          3-Month Content Calendar
+          3-Month Content Plan
           <br />
           <em className="not-italic text-[#f9956b]">
             June · July · August 2026
@@ -71,24 +91,14 @@ export default function ThreeMonthPlan({
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Editable · Draggable · Synced with the Calendar tab
+          Add your own content. Everything syncs with the Calendar tab.
         </p>
       </div>
 
-      <div className="border-b border-[#e8eaf2] bg-white px-4 py-3">
-        <div className="flex flex-wrap gap-4 text-xs font-black text-[#444]">
-          <LegendDot color="#e8453c" label="ECEA" />
-          <LegendDot color="#2d5be3" label="Business Mgmt" />
-          <LegendDot color="#9b59b6" label="AI Web Design" />
-          <LegendDot color="#27ae60" label="French" />
-          <LegendDot color="#0d2560" label="CIRA Brand" />
-        </div>
-      </div>
-
       <div className="grid grid-cols-3 border-b-2 border-[#e8eaf2] bg-white">
-        {planMonths.map((month, index) => (
+        {months.map((month, index) => (
           <button
-            key={month.title}
+            key={month.label}
             type="button"
             onClick={() => setActiveMonth(index)}
             className={`border-b-4 px-3 py-4 text-center text-xs font-black uppercase tracking-wide transition ${
@@ -97,327 +107,124 @@ export default function ThreeMonthPlan({
                 : "border-transparent text-[#aaa] hover:text-[#e8453c]"
             }`}
           >
-            {month.label}
+            {month.display}
           </button>
         ))}
       </div>
 
       <div className="bg-[#e5e9f2] p-5">
-        <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-          <MiniMonthCalendar
-            year={monthInfo.year}
-            month={monthInfo.month}
-            title={monthInfo.title}
-            posts={posts}
-            draggedPostId={draggedPostId}
-            setDraggedPostId={setDraggedPostId}
-            onPostClick={onPostClick}
-            onMovePostToDate={onMovePostToDate}
-            onAddPostForDate={onAddPostForDate}
-          />
+        <div className="rounded-[28px] bg-white p-5 shadow-sm">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
+                Monthly Content
+              </p>
 
-          <MonthPostList
-            title={monthInfo.title}
-            posts={monthPosts}
-            draggedPostId={draggedPostId}
-            setDraggedPostId={setDraggedPostId}
-            onPostClick={onPostClick}
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
+              <h3 className="cira-heading text-2xl font-black text-[#0d2560]">
+                {selectedMonth.display}
+              </h3>
 
-function MiniMonthCalendar({
-  year,
-  month,
-  title,
-  posts,
-  draggedPostId,
-  setDraggedPostId,
-  onPostClick,
-  onMovePostToDate,
-  onAddPostForDate,
-}: {
-  year: number;
-  month: number;
-  title: string;
-  posts: Post[];
-  draggedPostId: string | null;
-  setDraggedPostId: (id: string | null) => void;
-  onPostClick: (post: Post) => void;
-  onMovePostToDate: (postId: string, newDate: string) => void;
-  onAddPostForDate: (dateString: string) => void;
-}) {
-  const days = getMonthDays(year, month);
+              <p className="mt-1 text-xs font-bold text-[#777]">
+                {monthPosts.length} content item{monthPosts.length === 1 ? "" : "s"}
+              </p>
+            </div>
 
-  return (
-    <div className="rounded-[28px] bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
-            Calendar View
-          </p>
-
-          <h3 className="cira-heading text-2xl font-black text-[#0d2560]">
-            {title}
-          </h3>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onAddPostForDate(makeDateString(year, month, 1))}
-          className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-xs font-black text-white"
-        >
-          + Add Post
-        </button>
-      </div>
-
-      <div className="mb-2 grid grid-cols-7 gap-1 text-center">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} className="text-[9px] font-black uppercase text-[#777]">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day, index) => {
-          if (!day) {
-            return (
-              <div
-                key={`blank-${index}`}
-                className="min-h-20 rounded-2xl bg-[#f4f6fb]"
-              />
-            );
-          }
-
-          const dateString = makeDateString(year, month, day);
-          const postsForDay = posts.filter((post) => post.post_date === dateString);
-
-          return (
-            <div
-              key={dateString}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => {
-                if (draggedPostId) {
-                  onMovePostToDate(draggedPostId, dateString);
-                  setDraggedPostId(null);
-                }
-              }}
-              className={`min-h-20 rounded-2xl border p-1.5 transition ${
-                draggedPostId
-                  ? "border-[#e8453c] bg-[#fff8f5]"
-                  : "border-[#e8eaf2] bg-white"
-              }`}
+            <button
+              type="button"
+              onClick={() => onAddPostForDate(selectedMonth.defaultDate)}
+              className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-3 text-sm font-black text-white shadow-sm"
             >
-              <div className="mb-1 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => onAddPostForDate(dateString)}
-                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#f4f6fb] text-[10px] font-black text-[#0d2560] hover:bg-[#e8453c] hover:text-white"
-                >
-                  {day}
-                </button>
+              + Add Content
+            </button>
+          </div>
 
-                <button
-                  type="button"
-                  onClick={() => onAddPostForDate(dateString)}
-                  className="rounded-md px-1 text-[10px] font-black text-[#e8453c] hover:bg-[#fff8f5]"
-                >
-                  +
-                </button>
-              </div>
+          {monthPosts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#e8eaf2] bg-[#f4f6fb] p-10 text-center">
+              <p className="text-base font-black text-[#0d2560]">
+                No content added yet.
+              </p>
 
-              <div className="space-y-1">
-                {postsForDay.slice(0, 2).map((post) => (
-                  <button
-                    key={post.id}
-                    type="button"
-                    draggable
-                    onDragStart={() => setDraggedPostId(post.id)}
-                    onDragEnd={() => setDraggedPostId(null)}
-                    onClick={() => onPostClick(post)}
-                    className={`w-full rounded-lg bg-white p-1 text-left shadow-sm transition hover:shadow-md ${
-                      draggedPostId === post.id ? "opacity-50" : "opacity-100"
-                    }`}
-                  >
+              <p className="mt-2 text-sm font-bold text-[#777]">
+                Click “+ Add Content” to create your first post for this month.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {monthPosts.map((post) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  draggable
+                  onDragStart={() => setDraggedPostId(post.id)}
+                  onDragEnd={() => setDraggedPostId(null)}
+                  onClick={() => {
+                    if (!draggedPostId) onPostClick(post);
+                  }}
+                  className={`w-full overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                    draggedPostId === post.id ? "opacity-50" : "opacity-100"
+                  }`}
+                >
+                  <div className="flex">
                     <div
-                      className={`mb-1 h-1 rounded-full bg-gradient-to-r ${programGradient(
+                      className={`w-2 shrink-0 bg-gradient-to-b ${programGradient(
                         post.program
                       )}`}
                     />
 
-                    <p className="truncate text-[9px] font-black text-[#0d2560]">
-                      {post.title}
-                    </p>
-                  </button>
-                ))}
+                    <div className="flex-1 p-4">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="rounded-lg bg-[#f4f6fb] px-2 py-1 text-[10px] font-black text-[#777]">
+                          {formatDate(post.post_date)}
+                        </span>
 
-                {postsForDay.length > 2 && (
-                  <p className="rounded-md bg-[#f4f6fb] px-1 py-0.5 text-[8px] font-black text-[#777]">
-                    +{postsForDay.length - 2} more
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+                        <span
+                          className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
+                            post.program
+                          )}`}
+                        >
+                          {post.program || "Program"}
+                        </span>
 
-function MonthPostList({
-  title,
-  posts,
-  draggedPostId,
-  setDraggedPostId,
-  onPostClick,
-}: {
-  title: string;
-  posts: Post[];
-  draggedPostId: string | null;
-  setDraggedPostId: (id: string | null) => void;
-  onPostClick: (post: Post) => void;
-}) {
-  return (
-    <div className="rounded-[28px] bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
-            Monthly Schedule
-          </p>
+                        <span
+                          className={`rounded-full px-2 py-1 text-[9px] font-black ${statusPill(
+                            post.status
+                          )}`}
+                        >
+                          {post.status}
+                        </span>
 
-          <h3 className="cira-heading text-2xl font-black text-[#0d2560]">
-            {title} Posts
-          </h3>
-        </div>
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black text-slate-700">
+                          {post.post_type || "Static"}
+                        </span>
 
-        <div className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#777]">
-          {posts.length} posts
-        </div>
-      </div>
+                        <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
+                          {post.post_goal || "Engage"}
+                        </span>
+                      </div>
 
-      {posts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#e8eaf2] bg-[#f4f6fb] p-8 text-center">
-          <p className="text-sm font-black text-[#0d2560]">
-            No posts planned yet.
-          </p>
-          <p className="mt-1 text-xs font-bold text-[#777]">
-            Click a date on the mini calendar to add a new post.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {posts.map((post) => (
-            <button
-              key={post.id}
-              type="button"
-              draggable
-              onDragStart={() => setDraggedPostId(post.id)}
-              onDragEnd={() => setDraggedPostId(null)}
-              onClick={() => {
-                if (!draggedPostId) onPostClick(post);
-              }}
-              className={`w-full overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                draggedPostId === post.id ? "opacity-50" : "opacity-100"
-              }`}
-            >
-              <div className="flex">
-                <div
-                  className={`w-2 shrink-0 bg-gradient-to-b ${programGradient(
-                    post.program
-                  )}`}
-                />
+                      <h4 className="text-sm font-black leading-snug text-[#0d2560]">
+                        {post.title}
+                      </h4>
 
-                <div className="flex-1 p-4">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-lg bg-[#f4f6fb] px-2 py-1 text-[10px] font-black text-[#777]">
-                      {formatDate(post.post_date)}
-                    </span>
+                      {post.caption && (
+                        <p className="mt-1 max-h-10 overflow-hidden text-xs leading-relaxed text-[#777]">
+                          {post.caption}
+                        </p>
+                      )}
 
-                    <span
-                      className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
-                        post.program
-                      )}`}
-                    >
-                      {post.program || "Program"}
-                    </span>
-
-                    <span
-                      className={`rounded-full px-2 py-1 text-[9px] font-black ${statusPill(
-                        post.status
-                      )}`}
-                    >
-                      {post.status}
-                    </span>
-
-                    <span
-                      className={`rounded-full px-2 py-1 text-[9px] font-black ${typePill(
-                        post.post_type
-                      )}`}
-                    >
-                      {post.post_type || "Static"}
-                    </span>
-
-                    <span
-                      className={`rounded-full px-2 py-1 text-[9px] font-black ${goalPill(
-                        post.post_goal
-                      )}`}
-                    >
-                      {post.post_goal || "Engage"}
-                    </span>
+                      <p className="mt-2 text-[10px] font-bold text-[#aaa]">
+                        Click to view/edit · Drag to reschedule in Calendar
+                      </p>
+                    </div>
                   </div>
-
-                  <h4 className="text-sm font-black leading-snug text-[#0d2560]">
-                    {post.title}
-                  </h4>
-
-                  {post.caption && (
-                    <p className="mt-1 max-h-10 overflow-hidden text-xs leading-relaxed text-[#777]">
-                      {post.caption}
-                    </p>
-                  )}
-
-                  <p className="mt-2 text-[10px] font-bold text-[#aaa]">
-                    Click to view/edit · Drag to reschedule
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
-}
-
-function useStateSafe(initialValue: number) {
-  const React = require("react") as typeof import("react");
-  return React.useState(initialValue);
-}
-
-function getMonthDays(year: number, month: number) {
-  const firstDay = new Date(year, month, 1);
-  const startDay = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const days: (number | null)[] = [];
-
-  for (let i = 0; i < startDay; i++) days.push(null);
-  for (let day = 1; day <= daysInMonth; day++) days.push(day);
-  while (days.length % 7 !== 0) days.push(null);
-
-  return days;
-}
-
-function makeDateString(year: number, month: number, day: number) {
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(
-    2,
-    "0"
-  )}`;
 }
 
 function formatDate(dateString: string) {
@@ -428,15 +235,6 @@ function formatDate(dateString: string) {
     month: "short",
     day: "numeric",
   });
-}
-
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-      {label}
-    </div>
-  );
 }
 
 function programGradient(program: string | null) {
@@ -483,18 +281,4 @@ function statusPill(status: string) {
   if (status === "Published") return "bg-[#25d366]/10 text-[#128C7E]";
   if (status === "Scheduled") return "bg-[#0d2560]/10 text-[#0d2560]";
   return "bg-[#f5c842]/20 text-[#8a6000]";
-}
-
-function typePill(type: string | null) {
-  if (type === "Reel") return "bg-purple-100 text-purple-700";
-  if (type === "Carousel") return "bg-blue-100 text-blue-700";
-  if (type === "Story") return "bg-pink-100 text-pink-700";
-  return "bg-slate-100 text-slate-700";
-}
-
-function goalPill(goal: string | null) {
-  if (goal === "Save") return "bg-[#f5c842]/20 text-[#8a6000]";
-  if (goal === "Lead") return "bg-[#0d2560]/10 text-[#0d2560]";
-  if (goal === "Reach") return "bg-[#e8453c]/10 text-[#e8453c]";
-  return "bg-[#25d366]/10 text-[#128C7E]";
 }
