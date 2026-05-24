@@ -10,6 +10,7 @@ type ContentIdea = {
   title: string;
   category: string;
   content_type: string | null;
+  idea_category: string | null;
   description: string | null;
   notes: string | null;
   program: string | null;
@@ -42,6 +43,7 @@ type IdeaForm = {
   title: string;
   category: IdeaCategory;
   content_type: string;
+  idea_category: string;
   description: string;
   notes: string;
   program: string;
@@ -51,10 +53,19 @@ type IdeaForm = {
 
 const categories: IdeaCategory[] = ["Ideas", "Mood Board"];
 
+const ideaCategories = [
+  "Educational",
+  "Objection Handling",
+  "Social Proof",
+  "Enrollment CTA",
+  "Engagement",
+];
+
 const blankIdea: IdeaForm = {
   title: "",
   category: "Ideas",
   content_type: "Carousel",
+  idea_category: "Educational",
   description: "",
   notes: "",
   program: "ECEA",
@@ -114,6 +125,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
       title: idea.title || "",
       category: idea.category === "Mood Board" ? "Mood Board" : "Ideas",
       content_type: idea.content_type || "Carousel",
+      idea_category: idea.idea_category || "Educational",
       description: idea.description || "",
       notes: idea.notes || "",
       program: idea.program || "ECEA",
@@ -195,6 +207,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
             title: cleanTitle,
             category: "Mood Board",
             content_type: "Design",
+            idea_category: "Educational",
             description: "",
             notes: "",
             program: "CIRA Brand",
@@ -333,7 +346,12 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
       design_notes: schedulingIdea.description || "",
       media_url: "",
       post_type: postType,
-      post_goal: "Engage",
+      post_goal:
+        schedulingIdea.idea_category === "Enrollment CTA"
+          ? "Lead"
+          : schedulingIdea.idea_category === "Engagement"
+          ? "Engage"
+          : "Save",
       image_url: schedulingIdea.image_url || "",
     };
 
@@ -389,8 +407,8 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Add content ideas, drag images into your mood board, then move items
-          to the calendar when ready.
+          Add content ideas, organize by strategy category, drag images into your
+          mood board, then move items to the calendar when ready.
         </p>
       </div>
 
@@ -459,8 +477,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
               </p>
 
               <p className="mt-2 text-sm font-bold text-[#777]">
-                You can drop one image or multiple images at once. No size limit
-                is set by the app.
+                You can drop one image or multiple images at once.
               </p>
 
               <label className="mt-4 inline-block cursor-pointer rounded-2xl bg-white px-5 py-3 text-sm font-black text-[#e8453c] shadow-sm hover:bg-[#fff8f5]">
@@ -538,6 +555,10 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                           {idea.content_type || "Design"}
                         </span>
 
+                        <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+                          {idea.idea_category || "Educational"}
+                        </span>
+
                         <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
                           {idea.status || "Idea"}
                         </span>
@@ -609,6 +630,10 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
 
                         <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
                           {idea.content_type || "Idea"}
+                        </span>
+
+                        <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+                          {idea.idea_category || "Educational"}
                         </span>
 
                         <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
@@ -734,6 +759,18 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                 <option>Design</option>
                 <option>Reference</option>
                 <option>Brand Inspiration</option>
+              </select>
+
+              <select
+                value={form.idea_category}
+                onChange={(event) =>
+                  setForm({ ...form, idea_category: event.target.value })
+                }
+                className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+              >
+                {ideaCategories.map((category) => (
+                  <option key={category}>{category}</option>
+                ))}
               </select>
 
               <select
