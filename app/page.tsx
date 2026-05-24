@@ -1279,7 +1279,7 @@ function PostFormModal({
 
           <div className="rounded-2xl border border-dashed border-[#e8453c]/40 bg-[#fff8f5] p-4">
             <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#e8453c]">
-              Upload Photo for IG Grid
+              Upload / Replace Photo for IG Grid
             </p>
 
             <input
@@ -1318,12 +1318,18 @@ function PostFormModal({
                 </a>
 
                 <button
-                  type="button"
-                  onClick={() => setPost({ ...post, image_url: "" })}
-                  className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
-                >
-                  Remove image
-                </button>
+  type="button"
+  onClick={() => {
+    const confirmed = confirm("Remove this image from the post? Remember to click Save after removing.");
+
+    if (confirmed) {
+      setPost({ ...post, image_url: "" });
+    }
+  }}
+  className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
+>
+  Remove Photo
+</button>
               </div>
             ) : (
               <div className="mt-3 flex aspect-square w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-sm font-bold text-[#777]">
