@@ -623,7 +623,7 @@ export default function Home() {
       </section>
 
       <div className="p-4 lg:p-6">
-        <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
+        <div className="mb-4 flex flex-wrap justify-end gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
             type="button"
             onClick={() => setActiveView("ideas")}
