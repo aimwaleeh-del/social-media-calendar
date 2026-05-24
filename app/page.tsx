@@ -289,6 +289,26 @@ export default function Home() {
     )}`;
   }
 
+  function openNewPostForDay(day: number) {
+    const selectedDate = makeDateString(day);
+
+    setNewPost({
+      title: "",
+      post_date: selectedDate,
+      platform: "Instagram",
+      status: "Draft",
+      program: "ECEA",
+      assignee: "",
+      caption: "",
+      design_notes: "",
+      media_url: "",
+      post_type: "Static",
+      post_goal: "Engage",
+    });
+
+    setShowForm(true);
+  }
+
   function postsForDay(day: number) {
     const dateString = makeDateString(day);
 
@@ -516,8 +536,7 @@ export default function Home() {
 
       <div className="p-4 lg:p-6">
         <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
-          <span className="font-black text-[#e8453c]">Tip:</span> Drag a post card
-          to another date to reschedule it.
+          <span className="font-black text-[#e8453c]">Tip:</span> Click a date or the + button to add a post. Drag a post card to reschedule it.
         </div>
 
         <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
@@ -616,9 +635,23 @@ export default function Home() {
               {day && (
                 <>
                   <div className="mb-2 flex items-center justify-between">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560]">
+                    <button
+                      type="button"
+                      onClick={() => openNewPostForDay(day)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560] transition hover:bg-[#e8453c] hover:text-white"
+                      title="Add post on this date"
+                    >
                       {day}
-                    </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openNewPostForDay(day)}
+                      className="rounded-lg bg-[#fff8f5] px-2 py-1 text-[9px] font-black text-[#e8453c] transition hover:bg-[#e8453c] hover:text-white"
+                      title="Add post on this date"
+                    >
+                      +
+                    </button>
                   </div>
 
                   <div className="space-y-2">
