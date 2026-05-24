@@ -159,10 +159,10 @@ export default function Home() {
   }
 
   async function uploadPostImage(
-    file: File,
-    currentPost: FormPost,
-    setPost: (post: FormPost) => void
-  ) {
+  file: File,
+  currentPost: FormPost | Post,
+  setPost: (post: any) => void
+) {
     if (!file) return;
 
     const fileExt = file.name.split(".").pop();
@@ -1109,14 +1109,14 @@ function PostFormModal({
   programs: string[];
   postTypes: string[];
   postGoals: string[];
-  post: FormPost;
-  setPost: (post: FormPost) => void;
+  post: FormPost | Post;
+  setPost: (post: any) => void;
   onCancel: () => void;
   onSave: () => void;
   onUploadImage: (
     file: File,
-    currentPost: FormPost,
-    setPost: (post: FormPost) => void
+    currentPost: FormPost | Post,
+    setPost: (post: any) => void
   ) => Promise<void>;
 }) {
   const [uploadingImage, setUploadingImage] = useState(false);
