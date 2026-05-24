@@ -1,13 +1,11 @@
 "use client";
 
-type Status = "Draft" | "Scheduled" | "Published";
-
 type Post = {
   id: string;
   title: string;
   post_date: string;
   platform: string;
-  status: Status;
+  status: "Draft" | "Scheduled" | "Published";
   program: string | null;
   assignee: string | null;
   caption: string | null;
@@ -17,7 +15,6 @@ type Post = {
   post_goal: string | null;
   image_url: string | null;
 };
-
 type ThreeMonthPlanProps = {
   posts: Post[];
   draggedPostId: string | null;
