@@ -623,56 +623,67 @@ function programPill(program: string | null) {
         </div>
       </section>
 
-      <div className="p-4 lg:p-6">
-        <div className="mb-4 flex flex-wrap justify-end gap-2 rounded-2xl bg-white p-2 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveView("ideas")}
-            className={`rounded-xl px-4 py-2 text-xs font-black ${
-              activeView === "ideas"
-                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-                : "bg-[#f4f6fb] text-[#0d2560]"
-            }`}
-          >
-            Idea Library
-          </button>
+<div className="mb-4 flex flex-wrap justify-end gap-2 rounded-2xl bg-white p-2 shadow-sm">
+  <button
+    type="button"
+    onClick={() => setActiveView("ideas")}
+    className={`rounded-xl px-4 py-2 text-xs font-black ${
+      activeView === "ideas"
+        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+        : "bg-[#f4f6fb] text-[#0d2560]"
+    }`}
+  >
+    Idea Library
+  </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView("planning")}
-            className={`rounded-xl px-4 py-2 text-xs font-black ${
-              activeView === "planning"
-                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-                : "bg-[#f4f6fb] text-[#0d2560]"
-            }`}
-          >
-            3-Month Plan
-          </button>
+  <button
+    type="button"
+    onClick={() => setActiveView("planning")}
+    className={`rounded-xl px-4 py-2 text-xs font-black ${
+      activeView === "planning"
+        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+        : "bg-[#f4f6fb] text-[#0d2560]"
+    }`}
+  >
+    3-Month Plan
+  </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView("calendar")}
-            className={`rounded-xl px-4 py-2 text-xs font-black ${
-              activeView === "calendar"
-                ? "bg-[#0d2560] text-white"
-                : "bg-[#f4f6fb] text-[#0d2560]"
-            }`}
-          >
-            Calendar
-          </button>
+  <button
+    type="button"
+    onClick={() => setActiveView("calendar")}
+    className={`rounded-xl px-4 py-2 text-xs font-black ${
+      activeView === "calendar"
+        ? "bg-[#0d2560] text-white"
+        : "bg-[#f4f6fb] text-[#0d2560]"
+    }`}
+  >
+    Calendar
+  </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView("ig-grid")}
-            className={`rounded-xl px-4 py-2 text-xs font-black ${
-              activeView === "ig-grid"
-                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-                : "bg-[#f4f6fb] text-[#0d2560]"
-            }`}
-          >
-            IG Grid Preview
-          </button>
-        </div>
+  <button
+    type="button"
+    onClick={() => setActiveView("ig-grid")}
+    className={`rounded-xl px-4 py-2 text-xs font-black ${
+      activeView === "ig-grid"
+        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+        : "bg-[#f4f6fb] text-[#0d2560]"
+    }`}
+  >
+    IG Grid Preview
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setActiveView("tasks")}
+    className={`rounded-xl px-4 py-2 text-xs font-black ${
+      activeView === "tasks"
+        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+        : "bg-[#f4f6fb] text-[#0d2560]"
+    }`}
+  >
+    Task Management
+  </button>
+</div>
 
         {activeView === "ideas" && (
           <IdeaLibrary
