@@ -17,6 +17,8 @@ type Post = {
   caption: string | null;
   design_notes: string | null;
   media_url: string | null;
+  post_type: string | null;
+  post_goal: string | null;
 };
 
 type FormPost = {
@@ -29,6 +31,8 @@ type FormPost = {
   caption: string | null;
   design_notes: string | null;
   media_url: string | null;
+  post_type: string | null;
+  post_goal: string | null;
 };
 
 export default function Home() {
@@ -57,6 +61,8 @@ export default function Home() {
     caption: "",
     design_notes: "",
     media_url: "",
+    post_type: "Static",
+    post_goal: "Engage",
   });
 
   const platforms = [
@@ -69,8 +75,9 @@ export default function Home() {
   ];
 
   const statuses = ["All Statuses", "Draft", "Scheduled", "Published"];
-
   const programs = ["ECEA", "Business", "AI Web Design", "French", "CIRA Brand"];
+  const postTypes = ["Static", "Carousel", "Story", "Reel"];
+  const postGoals = ["Save", "Engage", "Lead", "Reach"];
 
   useEffect(() => {
     checkUser();
@@ -180,6 +187,8 @@ export default function Home() {
       caption: "",
       design_notes: "",
       media_url: "",
+      post_type: "Static",
+      post_goal: "Engage",
     });
   }
 
@@ -201,6 +210,8 @@ export default function Home() {
       caption: editingPost.caption,
       design_notes: editingPost.design_notes,
       media_url: editingPost.media_url,
+      post_type: editingPost.post_type,
+      post_goal: editingPost.post_goal,
     };
 
     const { data, error } = await supabase
@@ -365,6 +376,20 @@ export default function Home() {
     if (status === "Published") return "bg-[#25d366]/10 text-[#128C7E]";
     if (status === "Scheduled") return "bg-[#0d2560]/10 text-[#0d2560]";
     return "bg-[#f5c842]/20 text-[#8a6000]";
+  }
+
+  function typeTag(type: string | null) {
+    if (type === "Reel") return "bg-purple-100 text-purple-700";
+    if (type === "Carousel") return "bg-blue-100 text-blue-700";
+    if (type === "Story") return "bg-pink-100 text-pink-700";
+    return "bg-slate-100 text-slate-700";
+  }
+
+  function goalTag(goal: string | null) {
+    if (goal === "Save") return "bg-[#f5c842]/20 text-[#8a6000]";
+    if (goal === "Lead") return "bg-[#0d2560]/10 text-[#0d2560]";
+    if (goal === "Reach") return "bg-[#e8453c]/10 text-[#e8453c]";
+    return "bg-[#25d366]/10 text-[#128C7E]";
   }
 
   function platformButton(platform: string, active: boolean) {
@@ -632,13 +657,31 @@ export default function Home() {
                               {post.title}
                             </div>
 
-                            <span
-                              className={`mt-2 inline-block rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
-                                post.status
-                              )}`}
-                            >
-                              {post.status}
-                            </span>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              <span
+                                className={`rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
+                                  post.status
+                                )}`}
+                              >
+                                {post.status}
+                              </span>
+
+                              <span
+                                className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
+                                  post.post_type
+                                )}`}
+                              >
+                                {post.post_type || "Static"}
+                              </span>
+
+                              <span
+                                className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
+                                  post.post_goal
+                                )}`}
+                              >
+                                {post.post_goal || "Engage"}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -655,6 +698,8 @@ export default function Home() {
         <PostFormModal
           title="Create New Post"
           programs={programs}
+          postTypes={postTypes}
+          postGoals={postGoals}
           post={newPost}
           setPost={setNewPost}
           onCancel={() => setShowForm(false)}
@@ -668,6 +713,8 @@ export default function Home() {
           programAccent={programAccent}
           programPill={programPill}
           statusTag={statusTag}
+          typeTag={typeTag}
+          goalTag={goalTag}
           onClose={() => setSelectedPost(null)}
           onEdit={() => setEditingPost(selectedPost)}
           onDelete={() => deletePost(selectedPost.id)}
@@ -678,6 +725,8 @@ export default function Home() {
         <PostFormModal
           title="Edit Post"
           programs={programs}
+          postTypes={postTypes}
+          postGoals={postGoals}
           post={editingPost}
           setPost={setEditingPost}
           onCancel={() => setEditingPost(null)}
@@ -702,6 +751,8 @@ function PostDetailsModal({
   programAccent,
   programPill,
   statusTag,
+  typeTag,
+  goalTag,
   onClose,
   onEdit,
   onDelete,
@@ -710,6 +761,8 @@ function PostDetailsModal({
   programAccent: (program: string | null) => string;
   programPill: (program: string | null) => string;
   statusTag: (status: string) => string;
+  typeTag: (type: string | null) => string;
+  goalTag: (goal: string | null) => string;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -729,6 +782,14 @@ function PostDetailsModal({
               <span className={`rounded-full px-3 py-1 text-[10px] font-black ${statusTag(post.status)}`}>
                 {post.status}
               </span>
+
+              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${typeTag(post.post_type)}`}>
+                {post.post_type || "Static"}
+              </span>
+
+              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${goalTag(post.post_goal)}`}>
+                {post.post_goal || "Engage"}
+              </span>
             </div>
 
             <h2 className="cira-heading text-2xl font-black leading-tight text-[#0d2560]">
@@ -738,6 +799,8 @@ function PostDetailsModal({
             <div className="mt-5 space-y-3 text-sm">
               <InfoRow label="Date" value={post.post_date} />
               <InfoRow label="Platform" value={post.platform} />
+              <InfoRow label="Post Type" value={post.post_type || "Static"} />
+              <InfoRow label="Post Goal" value={post.post_goal || "Engage"} />
               <InfoRow label="Assignee" value={post.assignee || "None"} />
               <TextBox label="Caption" value={post.caption || "No caption added."} />
               <TextBox
@@ -817,6 +880,8 @@ function TextBox({ label, value }: { label: string; value: string }) {
 function PostFormModal({
   title,
   programs,
+  postTypes,
+  postGoals,
   post,
   setPost,
   onCancel,
@@ -824,6 +889,8 @@ function PostFormModal({
 }: {
   title: string;
   programs: string[];
+  postTypes: string[];
+  postGoals: string[];
   post: FormPost;
   setPost: (post: any) => void;
   onCancel: () => void;
@@ -864,6 +931,26 @@ function PostFormModal({
             <option>LinkedIn</option>
             <option>TikTok</option>
             <option>Twitter/X</option>
+          </select>
+
+          <select
+            value={post.post_type || "Static"}
+            onChange={(e) => setPost({ ...post, post_type: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          >
+            {postTypes.map((type) => (
+              <option key={type}>{type}</option>
+            ))}
+          </select>
+
+          <select
+            value={post.post_goal || "Engage"}
+            onChange={(e) => setPost({ ...post, post_goal: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          >
+            {postGoals.map((goal) => (
+              <option key={goal}>{goal}</option>
+            ))}
           </select>
 
           <select
