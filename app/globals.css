@@ -1,26 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --cira-navy: #0d2560;
+  --cira-blue: #1a3a8a;
+  --cira-coral: #e8453c;
+  --cira-orange: #f4724a;
+  --cira-peach: #f9956b;
+  --cira-gold: #f5c842;
+  --cira-offwhite: #fff8f5;
+  --cira-text: #2a2a3d;
+  --cira-muted: #777;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "DM Sans", sans-serif;
+  background: #e5e9f2;
+  color: var(--cira-text);
+}
+
+.cira-heading {
+  font-family: "Fraunces", serif;
 }

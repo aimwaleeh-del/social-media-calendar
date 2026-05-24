@@ -4,12 +4,26 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
+type Status = "Draft" | "Scheduled" | "Published";
+
 type Post = {
   id: string;
   title: string;
   post_date: string;
   platform: string;
-  status: "Draft" | "Scheduled" | "Published";
+  status: Status;
+  program: string | null;
+  assignee: string | null;
+  caption: string | null;
+  design_notes: string | null;
+  media_url: string | null;
+};
+
+type FormPost = {
+  title: string;
+  post_date: string;
+  platform: string;
+  status: Status;
   program: string | null;
   assignee: string | null;
   caption: string | null;
@@ -33,11 +47,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
 
-  const [newPost, setNewPost] = useState({
+  const [newPost, setNewPost] = useState<FormPost>({
     title: "",
     post_date: "2026-05-23",
     platform: "Instagram",
-    status: "Draft" as "Draft" | "Scheduled" | "Published",
+    status: "Draft",
     program: "ECEA",
     assignee: "",
     caption: "",
@@ -319,35 +333,93 @@ export default function Home() {
     setCurrentDate(new Date(year, month + 1, 1));
   }
 
-  function statusStyle(status: string) {
-    if (status === "Published") return "bg-green-500";
-    if (status === "Scheduled") return "bg-blue-500";
-    return "bg-gray-400";
+  function programKey(program: string | null) {
+    if (program === "Business") return "biz";
+    if (program === "AI Web Design") return "ai";
+    if (program === "French") return "fr";
+    if (program === "CIRA Brand") return "cira";
+    return "ecea";
+  }
+
+  function programAccent(program: string | null) {
+    const key = programKey(program);
+
+    if (key === "biz") return "bg-gradient-to-b from-[#1a3a8a] to-[#2d5be3]";
+    if (key === "ai") return "bg-gradient-to-b from-[#6c3fc5] to-[#9b59b6]";
+    if (key === "fr") return "bg-gradient-to-b from-[#1a7a45] to-[#27ae60]";
+    if (key === "cira") return "bg-gradient-to-b from-[#1a3a8a] to-[#0d2560]";
+    return "bg-gradient-to-b from-[#e8453c] via-[#f4724a] to-[#f9956b]";
+  }
+
+  function programPill(program: string | null) {
+    const key = programKey(program);
+
+    if (key === "biz") return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
+    if (key === "ai") return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
+    if (key === "fr") return "bg-[#1a7a45]/10 text-[#1a7a45]";
+    if (key === "cira") return "bg-[#0d2560]/10 text-[#0d2560]";
+    return "bg-[#e8453c]/10 text-[#e8453c]";
+  }
+
+  function statusTag(status: string) {
+    if (status === "Published") return "bg-[#25d366]/10 text-[#128C7E]";
+    if (status === "Scheduled") return "bg-[#0d2560]/10 text-[#0d2560]";
+    return "bg-[#f5c842]/20 text-[#8a6000]";
+  }
+
+  function platformButton(platform: string, active: boolean) {
+    if (!active) {
+      return "bg-white text-[#777] border border-[#e8eaf2] hover:text-[#0d2560]";
+    }
+
+    if (platform === "All Platforms") {
+      return "bg-[#0d2560] text-white border-[#0d2560]";
+    }
+
+    return "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white border-transparent";
+  }
+
+  function statusButton(status: string, active: boolean) {
+    if (!active) {
+      return "bg-white text-[#777] border border-[#e8eaf2] hover:text-[#0d2560]";
+    }
+
+    if (status === "Published") return "bg-[#128C7E] text-white border-transparent";
+    if (status === "Scheduled") return "bg-[#0d2560] text-white border-transparent";
+    if (status === "Draft") return "bg-[#f5c842] text-[#2a2a3d] border-transparent";
+    return "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white border-transparent";
   }
 
   if (checkingUser) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white text-black">
-        <p>Checking login...</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#e5e9f2] text-[#2a2a3d]">
+        <div className="rounded-2xl bg-white px-6 py-4 text-sm font-bold shadow">
+          Checking login...
+        </div>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6 text-black">
-        <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-          <h1 className="text-2xl font-bold">Content Calendar Login</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to access your team content calendar.
-          </p>
+      <main className="flex min-h-screen items-center justify-center bg-[#e5e9f2] p-6 text-[#2a2a3d]">
+        <div className="w-full max-w-md overflow-hidden rounded-[28px] bg-white shadow-2xl">
+          <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-7 text-white">
+            <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
+            <h1 className="cira-heading relative z-10 text-3xl font-black leading-tight">
+              Content Calendar
+            </h1>
+            <p className="relative z-10 mt-2 text-sm text-white/60">
+              Sign in to manage your CIRA social media planner.
+            </p>
+          </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="space-y-4 p-7">
             <input
               type="email"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 p-3"
+              className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
               placeholder="Email"
             />
 
@@ -355,13 +427,13 @@ export default function Home() {
               type="password"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 p-3"
+              className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
               placeholder="Password"
             />
 
             <button
               onClick={login}
-              className="w-full rounded-lg bg-black px-4 py-3 font-semibold text-white"
+              className="w-full rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-3 text-sm font-black text-white shadow-lg"
             >
               Log In
             </button>
@@ -372,348 +444,320 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-white p-6 text-black">
-      <div className="rounded-xl border border-gray-200 p-4">
-        <div className="flex items-center justify-between">
+    <main className="min-h-screen bg-[#e5e9f2] pb-20 text-[#2a2a3d]">
+      <header className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] px-6 pb-6 pt-8 text-white">
+        <div className="absolute -right-14 -top-20 h-56 w-56 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
+
+        <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Content Calendar</h1>
-            <p className="text-sm text-gray-600">Logged in as {user.email}</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-white/40">
+              Social Media Planner
+            </p>
+            <h1 className="cira-heading mt-1 text-3xl font-black leading-tight lg:text-4xl">
+              Content Calendar
+              <br />
+              <em className="not-italic text-[#f9956b]">{monthTitle}</em>
+            </h1>
+            <p className="mt-2 text-xs text-white/50">Logged in as {user.email}</p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={logout}
-              className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
+              className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur hover:bg-white/20"
             >
               Logout
             </button>
 
             <button
               onClick={() => setShowForm(true)}
-              className="rounded-lg bg-black px-4 py-2 font-semibold text-white"
+              className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-lg"
             >
               + New Post
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="mt-6 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-        Tip: drag a post card to another date to reschedule it.
-      </div>
-
-      <div className="mt-6">
-        <p className="mb-2 text-sm font-semibold text-gray-600">Platform</p>
-
-        <div className="flex flex-wrap gap-3">
-          {platforms.map((platform) => (
-            <button
-              key={platform}
-              onClick={() => setSelectedPlatform(platform)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                selectedPlatform === platform
-                  ? "bg-black text-white"
-                  : "bg-gray-100 text-black"
-              }`}
-            >
-              {platform}
-            </button>
-          ))}
+      <section className="border-b border-[#e8eaf2] bg-white px-4 py-3">
+        <div className="flex flex-wrap gap-4 text-xs font-black text-[#444]">
+          <Legend color="#e8453c" label="ECEA" />
+          <Legend color="#2d5be3" label="Business Mgmt" />
+          <Legend color="#9b59b6" label="AI Web Design" />
+          <Legend color="#27ae60" label="French" />
+          <Legend color="#0d2560" label="CIRA Brand" />
         </div>
-      </div>
+      </section>
 
-      <div className="mt-4">
-        <p className="mb-2 text-sm font-semibold text-gray-600">Status</p>
-
-        <div className="flex flex-wrap gap-3">
-          {statuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => setSelectedStatus(status)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                selectedStatus === status
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-black"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+      <div className="p-4 lg:p-6">
+        <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
+          <span className="font-black text-[#e8453c]">Tip:</span> Drag a post card
+          to another date to reschedule it.
         </div>
-      </div>
 
-      <div className="mt-6 flex items-center justify-between">
-        <button
-          onClick={previousMonth}
-          className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
-        >
-          Previous
-        </button>
+        <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+            Platform
+          </p>
 
-        <h2 className="text-xl font-bold">{monthTitle}</h2>
-
-        <button
-          onClick={nextMonth}
-          className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
-        >
-          Next
-        </button>
-      </div>
-
-      {loading && (
-        <p className="mt-6 rounded-lg bg-gray-100 p-3 text-sm">
-          Loading posts from Supabase...
-        </p>
-      )}
-
-      <div className="mt-8 grid grid-cols-7 gap-2 text-center text-sm font-medium text-gray-500">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day}>{day}</div>
-        ))}
-      </div>
-
-      <div className="mt-3 grid grid-cols-7 gap-2">
-        {calendarDays.map((day, index) => (
-          <div
-            key={index}
-            onDragOver={(event) => {
-              if (day) event.preventDefault();
-            }}
-            onDrop={() => {
-              if (day) handleDrop(day);
-            }}
-            className={`min-h-36 rounded-lg border p-2 ${
-              day && draggedPostId
-                ? "border-blue-300 bg-blue-50"
-                : "border-gray-200 bg-white"
-            }`}
-          >
-            {day && (
-              <>
-                <div className="mb-2 text-sm font-semibold text-gray-600">
-                  {day}
-                </div>
-
-                <div className="space-y-2">
-                  {postsForDay(day).map((post) => (
-                    <button
-                      key={post.id}
-                      draggable
-                      onDragStart={() => setDraggedPostId(post.id)}
-                      onDragEnd={() => setDraggedPostId(null)}
-                      onClick={() => {
-                        if (!draggedPostId) setSelectedPost(post);
-                      }}
-                      className={`w-full cursor-move rounded-md bg-blue-600 p-2 text-left text-xs text-white transition ${
-                        draggedPostId === post.id ? "opacity-50" : "opacity-100"
-                      }`}
-                    >
-                      <div className="truncate font-semibold">
-                        {post.platform} · {post.title}
-                      </div>
-
-                      <div className="mt-1 truncate text-[11px]">
-                        {post.program}
-                      </div>
-
-                      <span
-                        className={`mt-2 inline-block rounded px-2 py-1 text-[10px] ${statusStyle(
-                          post.status
-                        )}`}
-                      >
-                        {post.status}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="flex flex-wrap gap-2">
+            {platforms.map((platform) => (
+              <button
+                key={platform}
+                onClick={() => setSelectedPlatform(platform)}
+                className={`rounded-2xl px-4 py-2 text-xs font-black transition ${platformButton(
+                  platform,
+                  selectedPlatform === platform
+                )}`}
+              >
+                {platform}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className="mt-6 flex gap-4 text-sm">
-        <span className="font-semibold">Legend:</span>
-        <span>Draft</span>
-        <span>Scheduled</span>
-        <span>Published</span>
+          <p className="mb-3 mt-5 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+            Status
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {statuses.map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`rounded-2xl px-4 py-2 text-xs font-black transition ${statusButton(
+                  status,
+                  selectedStatus === status
+                )}`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-4 flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+          <button
+            onClick={previousMonth}
+            className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+          >
+            ← Previous
+          </button>
+
+          <h2 className="cira-heading text-xl font-black text-[#0d2560]">
+            {monthTitle}
+          </h2>
+
+          <button
+            onClick={nextMonth}
+            className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+          >
+            Next →
+          </button>
+        </section>
+
+        {loading && (
+          <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold text-[#777] shadow-sm">
+            Loading posts from Supabase...
+          </p>
+        )}
+
+        <div className="mt-5 grid grid-cols-7 gap-2 text-center">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div
+              key={day}
+              className="rounded-xl bg-white py-2 text-[10px] font-black uppercase tracking-wide text-[#777] shadow-sm"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-2 grid grid-cols-7 gap-2">
+          {calendarDays.map((day, index) => (
+            <div
+              key={index}
+              onDragOver={(event) => {
+                if (day) event.preventDefault();
+              }}
+              onDrop={() => {
+                if (day) handleDrop(day);
+              }}
+              className={`min-h-44 rounded-2xl border p-2 shadow-sm transition ${
+                day && draggedPostId
+                  ? "border-[#e8453c] bg-[#fff8f5]"
+                  : "border-[#e8eaf2] bg-white"
+              }`}
+            >
+              {day && (
+                <>
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560]">
+                      {day}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {postsForDay(day).map((post) => (
+                      <button
+                        key={post.id}
+                        draggable
+                        onDragStart={() => setDraggedPostId(post.id)}
+                        onDragEnd={() => setDraggedPostId(null)}
+                        onClick={() => {
+                          if (!draggedPostId) setSelectedPost(post);
+                        }}
+                        className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                          draggedPostId === post.id ? "opacity-50" : "opacity-100"
+                        }`}
+                      >
+                        <div className="flex">
+                          <div className={`w-1.5 shrink-0 ${programAccent(post.program)}`} />
+
+                          <div className="min-w-0 flex-1 p-3">
+                            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                              <span
+                                className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
+                                  post.program
+                                )}`}
+                              >
+                                {post.program || "Program"}
+                              </span>
+
+                              <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+                                {post.platform}
+                              </span>
+                            </div>
+
+                            <div className="truncate text-xs font-black leading-snug text-[#0d2560]">
+                              {post.title}
+                            </div>
+
+                            <span
+                              className={`mt-2 inline-block rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
+                                post.status
+                              )}`}
+                            >
+                              {post.status}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-xl font-bold">Create New Post</h2>
-
-            <div className="space-y-4">
-              <input
-                value={newPost.title}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, title: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Post title"
-              />
-
-              <input
-                type="date"
-                value={newPost.post_date}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, post_date: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              />
-
-              <select
-                value={newPost.platform}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, platform: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                <option>Instagram</option>
-                <option>Facebook</option>
-                <option>LinkedIn</option>
-                <option>TikTok</option>
-                <option>Twitter/X</option>
-              </select>
-
-              <select
-                value={newPost.program}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, program: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                {programs.map((program) => (
-                  <option key={program}>{program}</option>
-                ))}
-              </select>
-
-              <select
-                value={newPost.status}
-                onChange={(e) =>
-                  setNewPost({
-                    ...newPost,
-                    status: e.target.value as
-                      | "Draft"
-                      | "Scheduled"
-                      | "Published",
-                  })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                <option>Draft</option>
-                <option>Scheduled</option>
-                <option>Published</option>
-              </select>
-
-              <input
-                value={newPost.assignee}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, assignee: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Assignee"
-              />
-
-              <textarea
-                value={newPost.caption}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, caption: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Caption"
-                rows={4}
-              />
-
-              <textarea
-                value={newPost.design_notes}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, design_notes: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Design notes"
-                rows={3}
-              />
-
-              <input
-                value={newPost.media_url}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, media_url: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Media or Canva link"
-              />
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setShowForm(false)}
-                className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={addPost}
-                className="rounded-lg bg-black px-4 py-2 font-semibold text-white"
-              >
-                Save Post
-              </button>
-            </div>
-          </div>
-        </div>
+        <PostFormModal
+          title="Create New Post"
+          programs={programs}
+          post={newPost}
+          setPost={setNewPost}
+          onCancel={() => setShowForm(false)}
+          onSave={addPost}
+        />
       )}
 
       {selectedPost && !editingPost && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-bold">{selectedPost.title}</h2>
+        <PostDetailsModal
+          post={selectedPost}
+          programAccent={programAccent}
+          programPill={programPill}
+          statusTag={statusTag}
+          onClose={() => setSelectedPost(null)}
+          onEdit={() => setEditingPost(selectedPost)}
+          onDelete={() => deletePost(selectedPost.id)}
+        />
+      )}
 
-            <div className="mt-4 space-y-3 text-sm">
-              <p>
-                <strong>Date:</strong> {selectedPost.post_date}
-              </p>
-              <p>
-                <strong>Platform:</strong> {selectedPost.platform}
-              </p>
-              <p>
-                <strong>Program:</strong> {selectedPost.program}
-              </p>
-              <p>
-                <strong>Status:</strong> {selectedPost.status}
-              </p>
-              <p>
-                <strong>Assignee:</strong> {selectedPost.assignee || "None"}
-              </p>
+      {editingPost && (
+        <PostFormModal
+          title="Edit Post"
+          programs={programs}
+          post={editingPost}
+          setPost={setEditingPost}
+          onCancel={() => setEditingPost(null)}
+          onSave={saveChanges}
+        />
+      )}
+    </main>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
+      {label}
+    </div>
+  );
+}
+
+function PostDetailsModal({
+  post,
+  programAccent,
+  programPill,
+  statusTag,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  post: Post;
+  programAccent: (program: string | null) => string;
+  programPill: (program: string | null) => string;
+  statusTag: (status: string) => string;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
+      <div className="max-h-[90vh] w-full max-w-xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+        <div className="flex">
+          <div className={`w-2 shrink-0 ${programAccent(post.program)}`} />
+
+          <div className="flex-1 p-6">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${programPill(post.program)}`}>
+                {post.program || "Program"}
+              </span>
+
+              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${statusTag(post.status)}`}>
+                {post.status}
+              </span>
+            </div>
+
+            <h2 className="cira-heading text-2xl font-black leading-tight text-[#0d2560]">
+              {post.title}
+            </h2>
+
+            <div className="mt-5 space-y-3 text-sm">
+              <InfoRow label="Date" value={post.post_date} />
+              <InfoRow label="Platform" value={post.platform} />
+              <InfoRow label="Assignee" value={post.assignee || "None"} />
+              <TextBox label="Caption" value={post.caption || "No caption added."} />
+              <TextBox
+                label="Design Notes"
+                value={post.design_notes || "No design notes added."}
+              />
 
               <div>
-                <strong>Caption:</strong>
-                <p className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3">
-                  {selectedPost.caption || "No caption added."}
-                </p>
-              </div>
-
-              <div>
-                <strong>Design Notes:</strong>
-                <p className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3">
-                  {selectedPost.design_notes || "No design notes added."}
-                </p>
-              </div>
-
-              <div>
-                <strong>Media / Canva Link:</strong>
-                {selectedPost.media_url ? (
+                <strong className="text-[#0d2560]">Media / Canva Link:</strong>
+                {post.media_url ? (
                   <a
-                    href={selectedPost.media_url}
+                    href={post.media_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 block rounded-lg bg-gray-100 p-3 text-blue-600 underline"
+                    className="mt-1 block rounded-2xl bg-[#fff8f5] p-3 text-sm font-black text-[#e8453c] underline"
                   >
                     Open media link
                   </a>
                 ) : (
-                  <p className="mt-1 rounded-lg bg-gray-100 p-3">
+                  <p className="mt-1 rounded-2xl bg-[#f4f6fb] p-3 text-[#777]">
                     No media link added.
                   </p>
                 )}
@@ -722,23 +766,23 @@ export default function Home() {
 
             <div className="mt-6 flex justify-between gap-3">
               <button
-                onClick={() => deletePost(selectedPost.id)}
-                className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white"
+                onClick={onDelete}
+                className="rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white"
               >
                 Delete
               </button>
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setSelectedPost(null)}
-                  className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
+                  onClick={onClose}
+                  className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
                 >
                   Close
                 </button>
 
                 <button
-                  onClick={() => setEditingPost(selectedPost)}
-                  className="rounded-lg bg-black px-4 py-2 font-semibold text-white"
+                  onClick={onEdit}
+                  className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
                 >
                   Edit
                 </button>
@@ -746,139 +790,154 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
 
-      {editingPost && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-xl font-bold">Edit Post</h2>
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <p className="rounded-2xl bg-[#f4f6fb] p-3 text-[#777]">
+      <strong className="text-[#0d2560]">{label}:</strong> {value}
+    </p>
+  );
+}
 
-            <div className="space-y-4">
-              <input
-                value={editingPost.title}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, title: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Post title"
-              />
+function TextBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <strong className="text-[#0d2560]">{label}:</strong>
+      <p className="mt-1 whitespace-pre-wrap rounded-2xl bg-[#f4f6fb] p-3 text-[#2a2a3d]">
+        {value}
+      </p>
+    </div>
+  );
+}
 
-              <input
-                type="date"
-                value={editingPost.post_date}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, post_date: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              />
+function PostFormModal({
+  title,
+  programs,
+  post,
+  setPost,
+  onCancel,
+  onSave,
+}: {
+  title: string;
+  programs: string[];
+  post: FormPost;
+  setPost: (post: any) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
+        <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
+          <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
+          <h2 className="cira-heading relative z-10 text-2xl font-black">
+            {title}
+          </h2>
+        </div>
 
-              <select
-                value={editingPost.platform}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, platform: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                <option>Instagram</option>
-                <option>Facebook</option>
-                <option>LinkedIn</option>
-                <option>TikTok</option>
-                <option>Twitter/X</option>
-              </select>
+        <div className="space-y-4 p-6">
+          <input
+            value={post.title}
+            onChange={(e) => setPost({ ...post, title: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+            placeholder="Post title"
+          />
 
-              <select
-                value={editingPost.program || ""}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, program: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                {programs.map((program) => (
-                  <option key={program}>{program}</option>
-                ))}
-              </select>
+          <input
+            type="date"
+            value={post.post_date}
+            onChange={(e) => setPost({ ...post, post_date: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          />
 
-              <select
-                value={editingPost.status}
-                onChange={(e) =>
-                  setEditingPost({
-                    ...editingPost,
-                    status: e.target.value as
-                      | "Draft"
-                      | "Scheduled"
-                      | "Published",
-                  })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-              >
-                <option>Draft</option>
-                <option>Scheduled</option>
-                <option>Published</option>
-              </select>
+          <select
+            value={post.platform}
+            onChange={(e) => setPost({ ...post, platform: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          >
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>LinkedIn</option>
+            <option>TikTok</option>
+            <option>Twitter/X</option>
+          </select>
 
-              <input
-                value={editingPost.assignee || ""}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, assignee: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Assignee"
-              />
+          <select
+            value={post.program || ""}
+            onChange={(e) => setPost({ ...post, program: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          >
+            {programs.map((program) => (
+              <option key={program}>{program}</option>
+            ))}
+          </select>
 
-              <textarea
-                value={editingPost.caption || ""}
-                onChange={(e) =>
-                  setEditingPost({ ...editingPost, caption: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Caption"
-                rows={4}
-              />
+          <select
+            value={post.status}
+            onChange={(e) =>
+              setPost({
+                ...post,
+                status: e.target.value as Status,
+              })
+            }
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+          >
+            <option>Draft</option>
+            <option>Scheduled</option>
+            <option>Published</option>
+          </select>
 
-              <textarea
-                value={editingPost.design_notes || ""}
-                onChange={(e) =>
-                  setEditingPost({
-                    ...editingPost,
-                    design_notes: e.target.value,
-                  })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Design notes"
-                rows={3}
-              />
+          <input
+            value={post.assignee || ""}
+            onChange={(e) => setPost({ ...post, assignee: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+            placeholder="Assignee"
+          />
 
-              <input
-                value={editingPost.media_url || ""}
-                onChange={(e) =>
-                  setEditingPost({
-                    ...editingPost,
-                    media_url: e.target.value,
-                  })
-                }
-                className="w-full rounded-lg border border-gray-300 p-2"
-                placeholder="Media or Canva link"
-              />
-            </div>
+          <textarea
+            value={post.caption || ""}
+            onChange={(e) => setPost({ ...post, caption: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+            placeholder="Caption"
+            rows={4}
+          />
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setEditingPost(null)}
-                className="rounded-lg bg-gray-100 px-4 py-2 font-semibold"
-              >
-                Cancel
-              </button>
+          <textarea
+            value={post.design_notes || ""}
+            onChange={(e) => setPost({ ...post, design_notes: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+            placeholder="Design notes"
+            rows={3}
+          />
 
-              <button
-                onClick={saveChanges}
-                className="rounded-lg bg-black px-4 py-2 font-semibold text-white"
-              >
-                Save Changes
-              </button>
-            </div>
+          <input
+            value={post.media_url || ""}
+            onChange={(e) => setPost({ ...post, media_url: e.target.value })}
+            className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+            placeholder="Media or Canva link"
+          />
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={onCancel}
+              className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={onSave}
+              className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
+            >
+              Save
+            </button>
           </div>
         </div>
-      )}
-    </main>
+      </div>
+    </div>
   );
 }
