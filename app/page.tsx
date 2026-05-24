@@ -633,32 +633,48 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
               reschedule it.
             </div>
 
-            <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+            <section className="mt-4 <section className="relative z-20 mt-4 rounded-2xl bg-white p-4 shadow-sm">
   <div className="flex items-center justify-between gap-4">
     <button
+      type="button"
       onClick={previousMonth}
-      className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+      className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
     >
       ← Previous
     </button>
 
-    <div className="flex flex-1 items-center justify-center gap-3">
-      <div className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898]">
+    <div className="relative z-30 flex flex-1 items-center justify-center gap-3">
+      <button
+        type="button"
+        onClick={previousMonth}
+        className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+      >
         {previousMonthTitle}
-      </div>
+      </button>
 
-      <div className="rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white">
+      <button
+        type="button"
+        onClick={() => {
+          setCurrentDate(new Date(year, month, 1));
+        }}
+        className="cursor-default rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-sm"
+      >
         {monthTitle}
-      </div>
+      </button>
 
-      <div className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898]">
+      <button
+        type="button"
+        onClick={nextMonth}
+        className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+      >
         {nextMonthTitle}
-      </div>
+      </button>
     </div>
 
     <button
+      type="button"
       onClick={nextMonth}
-      className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+      className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
     >
       Next →
     </button>
