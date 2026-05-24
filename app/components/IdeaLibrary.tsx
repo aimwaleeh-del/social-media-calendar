@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-type IdeaCategory = "Ideas" | "Hooks" | "Designs" | "Captions" | "Weekly Plan";
+type IdeaCategory = "Ideas" | "Mood Board";
 
 type ContentIdea = {
   id: string;
@@ -14,6 +14,7 @@ type ContentIdea = {
   notes: string | null;
   program: string | null;
   status: string | null;
+  image_url: string | null;
   created_at: string;
 };
 
@@ -25,15 +26,10 @@ type IdeaForm = {
   notes: string;
   program: string;
   status: string;
+  image_url: string;
 };
 
-const categories: IdeaCategory[] = [
-  "Ideas",
-  "Hooks",
-  "Designs",
-  "Captions",
-  "Weekly Plan",
-];
+const categories: IdeaCategory[] = ["Ideas", "Mood Board"];
 
 const blankIdea: IdeaForm = {
   title: "",
@@ -43,6 +39,7 @@ const blankIdea: IdeaForm = {
   notes: "",
   program: "ECEA",
   status: "Idea",
+  image_url: "",
 };
 
 export default function IdeaLibrary() {
@@ -52,6 +49,7 @@ export default function IdeaLibrary() {
   const [editingIdea, setEditingIdea] = useState<ContentIdea | null>(null);
   const [form, setForm] = useState<IdeaForm>(blankIdea);
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchIdeas();
@@ -79,6 +77,7 @@ export default function IdeaLibrary() {
     setForm({
       ...blankIdea,
       category,
+      content_type: category === "Mood Board" ? "Design" : "Carousel",
     });
     setShowForm(true);
   }
@@ -87,14 +86,63 @@ export default function IdeaLibrary() {
     setEditingIdea(idea);
     setForm({
       title: idea.title || "",
-      category: idea.category as IdeaCategory,
+      category: idea.category === "Mood Board" ? "Mood Board" : "Ideas",
       content_type: idea.content_type || "Carousel",
       description: idea.description || "",
       notes: idea.notes || "",
       program: idea.program || "ECEA",
       status: idea.status || "Idea",
+      image_url: idea.image_url || "",
     });
     setShowForm(true);
+  }
+
+  async function uploadIdeaImage(file: File) {
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload a JPG, PNG, or WEBP image.");
+      return;
+    }
+
+    setUploadingImage(true);
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
+    const filePath = `ideas/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("post-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      setUploadingImage(false);
+      alert("Could not upload image:\n\n" + uploadError.message);
+      return;
+    }
+
+    const { data } = supabase.storage.from("post-images").getPublicUrl(filePath);
+
+    setForm({
+      ...form,
+      image_url: data.publicUrl,
+    });
+
+    setUploadingImage(false);
+  }
+
+  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    await uploadIdeaImage(file);
   }
 
   async function saveIdea() {
@@ -153,9 +201,13 @@ export default function IdeaLibrary() {
     setIdeas(ideas.filter((idea) => idea.id !== id));
   }
 
-  const filteredIdeas = ideas.filter(
-    (idea) => idea.category === activeCategory
-  );
+  const filteredIdeas = ideas.filter((idea) => {
+    if (activeCategory === "Ideas") {
+      return idea.category === "Ideas";
+    }
+
+    return idea.category === "Mood Board";
+  });
 
   return (
     <section className="overflow-hidden rounded-[28px] bg-white shadow-sm">
@@ -175,12 +227,11 @@ export default function IdeaLibrary() {
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Add ideas, hooks, captions, design notes, and weekly plans without
-          adding them to the calendar.
+          Add content ideas and mood board images without adding them to the calendar.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 border-b-2 border-[#e8eaf2] bg-white sm:grid-cols-5">
+      <div className="grid grid-cols-2 border-b-2 border-[#e8eaf2] bg-white">
         {categories.map((category) => (
           <button
             key={category}
@@ -192,7 +243,7 @@ export default function IdeaLibrary() {
                 : "border-transparent text-[#aaa] hover:text-[#e8453c]"
             }`}
           >
-            {categoryLabel(category)}
+            {category === "Ideas" ? "💡 Ideas" : "🎨 Mood Board"}
           </button>
         ))}
       </div>
@@ -206,7 +257,9 @@ export default function IdeaLibrary() {
               </p>
 
               <h3 className="cira-heading text-2xl font-black text-[#0d2560]">
-                {sectionTitle(activeCategory)}
+                {activeCategory === "Ideas"
+                  ? "Fresh Content Ideas"
+                  : "Design Mood Board"}
               </h3>
 
               <p className="mt-1 text-xs font-bold text-[#777]">
@@ -220,7 +273,7 @@ export default function IdeaLibrary() {
               onClick={() => openNewIdea(activeCategory)}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-3 text-sm font-black text-white shadow-sm"
             >
-              + Add Idea
+              {activeCategory === "Ideas" ? "+ Add Idea" : "+ Add Mood Board"}
             </button>
           </div>
 
@@ -231,12 +284,87 @@ export default function IdeaLibrary() {
           ) : filteredIdeas.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#e8eaf2] bg-[#f4f6fb] p-10 text-center">
               <p className="text-base font-black text-[#0d2560]">
-                No ideas added yet.
+                {activeCategory === "Ideas"
+                  ? "No ideas added yet."
+                  : "No mood board images added yet."}
               </p>
 
               <p className="mt-2 text-sm font-bold text-[#777]">
-                Click “+ Add Idea” to save something in this section.
+                {activeCategory === "Ideas"
+                  ? "Click “+ Add Idea” to save your first content idea."
+                  : "Click “+ Add Mood Board” to upload your first design reference."}
               </p>
+            </div>
+          ) : activeCategory === "Mood Board" ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredIdeas.map((idea) => (
+                <div
+                  key={idea.id}
+                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => openEditIdea(idea)}
+                    className="block w-full text-left"
+                  >
+                    {idea.image_url ? (
+                      <img
+                        src={idea.image_url}
+                        alt={idea.title}
+                        className="aspect-[4/5] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-[4/5] w-full items-center justify-center bg-[#d8d8d8] p-5 text-center text-sm font-bold text-[#777]">
+                        No image uploaded
+                      </div>
+                    )}
+
+                    <div className="p-4">
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <span
+                          className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
+                            idea.program
+                          )}`}
+                        >
+                          {idea.program || "Program"}
+                        </span>
+
+                        <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
+                          {idea.content_type || "Design"}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-black leading-snug text-[#0d2560]">
+                        {idea.title}
+                      </h4>
+
+                      {idea.description && (
+                        <p className="mt-2 text-xs leading-relaxed text-[#777]">
+                          {idea.description}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+
+                  <div className="flex gap-2 px-4 pb-4">
+                    <button
+                      type="button"
+                      onClick={() => openEditIdea(idea)}
+                      className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteIdea(idea.id)}
+                      className="rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-500 hover:text-white"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -321,7 +449,7 @@ export default function IdeaLibrary() {
 
               <div className="relative z-10 flex items-center justify-between gap-4">
                 <h2 className="cira-heading text-2xl font-black">
-                  {editingIdea ? "Edit Idea" : "Add Idea"}
+                  {editingIdea ? "Edit Item" : "Add Item"}
                 </h2>
 
                 <button
@@ -341,7 +469,11 @@ export default function IdeaLibrary() {
                   setForm({ ...form, title: event.target.value })
                 }
                 className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
-                placeholder="Idea title"
+                placeholder={
+                  form.category === "Mood Board"
+                    ? "Mood board title"
+                    : "Idea title"
+                }
               />
 
               <select
@@ -350,6 +482,10 @@ export default function IdeaLibrary() {
                   setForm({
                     ...form,
                     category: event.target.value as IdeaCategory,
+                    content_type:
+                      event.target.value === "Mood Board"
+                        ? "Design"
+                        : form.content_type,
                   })
                 }
                 className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
@@ -370,10 +506,9 @@ export default function IdeaLibrary() {
                 <option>Static</option>
                 <option>Reel</option>
                 <option>Story</option>
-                <option>Caption</option>
-                <option>Hook</option>
                 <option>Design</option>
-                <option>Weekly Plan</option>
+                <option>Reference</option>
+                <option>Brand Inspiration</option>
               </select>
 
               <select
@@ -403,6 +538,49 @@ export default function IdeaLibrary() {
                 <option>Used</option>
               </select>
 
+              {form.category === "Mood Board" && (
+                <div className="rounded-2xl border border-dashed border-[#e8453c]/40 bg-[#fff8f5] p-4">
+                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#e8453c]">
+                    Mood Board Image
+                  </p>
+
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleImageChange}
+                    className="w-full text-sm font-semibold text-[#777]"
+                  />
+
+                  {uploadingImage && (
+                    <p className="mt-2 text-xs font-bold text-[#777]">
+                      Uploading image...
+                    </p>
+                  )}
+
+                  {form.image_url ? (
+                    <div className="mt-3">
+                      <img
+                        src={form.image_url}
+                        alt="Mood board preview"
+                        className="aspect-[4/5] w-full rounded-2xl border border-[#e8eaf2] object-cover"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, image_url: "" })}
+                        className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-3 flex aspect-[4/5] w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-center text-sm font-bold text-[#777]">
+                      No image uploaded yet
+                    </div>
+                  )}
+                </div>
+              )}
+
               <textarea
                 value={form.description}
                 onChange={(event) =>
@@ -419,7 +597,7 @@ export default function IdeaLibrary() {
                   setForm({ ...form, notes: event.target.value })
                 }
                 className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
-                placeholder="Notes, caption draft, hook, design direction, etc."
+                placeholder="Notes, content direction, caption draft, design direction, etc."
                 rows={6}
               />
 
@@ -437,7 +615,7 @@ export default function IdeaLibrary() {
                   onClick={saveIdea}
                   className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
                 >
-                  Save Idea
+                  Save
                 </button>
               </div>
             </div>
@@ -446,22 +624,6 @@ export default function IdeaLibrary() {
       )}
     </section>
   );
-}
-
-function categoryLabel(category: IdeaCategory) {
-  if (category === "Ideas") return "💡 Ideas";
-  if (category === "Hooks") return "🎣 Hooks";
-  if (category === "Designs") return "🎨 Designs";
-  if (category === "Captions") return "✍️ Captions";
-  return "📅 Weekly Plan";
-}
-
-function sectionTitle(category: IdeaCategory) {
-  if (category === "Ideas") return "Fresh Content Ideas";
-  if (category === "Hooks") return "Scroll-Stopping Hooks";
-  if (category === "Designs") return "Post Design Ideas";
-  if (category === "Captions") return "Caption Templates";
-  return "Weekly Posting Plans";
 }
 
 function programGradient(program: string | null) {
