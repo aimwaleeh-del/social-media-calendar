@@ -1,22 +1,6 @@
 "use client";
 
-type Status = "Draft" | "Scheduled" | "Published";
-
-type Post = {
-  id: string;
-  title: string;
-  post_date: string;
-  platform: string;
-  status: Status;
-  program: string | null;
-  assignee: string | null;
-  caption: string | null;
-  design_notes: string | null;
-  media_url: string | null;
-  post_type: string | null;
-  post_goal: string | null;
-  image_url: string | null;
-};
+import type { Post } from "../page";
 
 type ThreeMonthPlanProps = {
   posts: Post[];
@@ -117,6 +101,7 @@ function MonthColumn({
   onAddPostForDate: (dateString: string) => void;
 }) {
   const days = getMonthDays(year, month);
+
   const monthTitle = new Date(year, month, 1).toLocaleString("default", {
     month: "long",
     year: "numeric",
@@ -134,6 +119,7 @@ function MonthColumn({
           <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
             {label}
           </p>
+
           <h3 className="cira-heading text-xl font-black text-[#0d2560]">
             {monthTitle}
           </h3>
@@ -187,7 +173,6 @@ function MonthColumn({
                   type="button"
                   onClick={() => onAddPostForDate(dateString)}
                   className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#f4f6fb] text-[10px] font-black text-[#0d2560] hover:bg-[#e8453c] hover:text-white"
-                  title="Add post"
                 >
                   {day}
                 </button>
@@ -196,7 +181,6 @@ function MonthColumn({
                   type="button"
                   onClick={() => onAddPostForDate(dateString)}
                   className="rounded-md px-1 text-[10px] font-black text-[#e8453c] hover:bg-[#fff8f5]"
-                  title="Add post"
                 >
                   +
                 </button>
@@ -260,17 +244,9 @@ function getMonthDays(year: number, month: number) {
 
   const days: (number | null)[] = [];
 
-  for (let i = 0; i < startDay; i++) {
-    days.push(null);
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    days.push(day);
-  }
-
-  while (days.length % 7 !== 0) {
-    days.push(null);
-  }
+  for (let i = 0; i < startDay; i++) days.push(null);
+  for (let day = 1; day <= daysInMonth; day++) days.push(day);
+  while (days.length % 7 !== 0) days.push(null);
 
   return days;
 }

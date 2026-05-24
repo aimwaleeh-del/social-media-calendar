@@ -1,13 +1,14 @@
 "use client";
-import ThreeMonthPlan from "./components/ThreeMonthPlan";
+
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
+import ThreeMonthPlan from "./components/ThreeMonthPlan";
 
 type Status = "Draft" | "Scheduled" | "Published";
 type ViewMode = "planning" | "calendar" | "ig-grid";
 
-type Post = {
+export type Post = {
   id: string;
   title: string;
   post_date: string;
@@ -38,300 +39,20 @@ type FormPost = {
   image_url: string | null;
 };
 
-type PlanPost = {
-  day: string;
-  date: string;
-  program: "ECEA" | "Business Mgmt" | "AI Web Design" | "French" | "CIRA Brand";
-  title: string;
-  desc: string;
-  tags: string[];
-};
-
-const planMonths: {
-  label: string;
-  title: string;
-  subtitle: string;
-  posts: PlanPost[];
-}[] = [
-  {
-    label: "☀️ June",
-    title: "☀️ June 2026",
-    subtitle: "June total: 9 posts · 7 ECEA · 1 Business Mgmt",
-    posts: [
-      {
-        day: "MON",
-        date: "Jun 1",
-        program: "ECEA",
-        title: "🚩 Red Flags in an ECEA Job Posting",
-        desc: "Navy background, coral red-flag boxes. 5 warning signs to spot before applying.",
-        tags: ["Save", "Engage"],
-      },
-      {
-        day: "THU",
-        date: "Jun 4",
-        program: "ECEA",
-        title: '🎬 Reel — "Retail to ECEA in 8 Months" (Zuhana)',
-        desc: "Zuhana photo cover, coral overlay, bold quote hook. 45 sec talking-head.",
-        tags: ["Reach", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Jun 8",
-        program: "ECEA",
-        title: "👶 Which Age Group Is Right for You?",
-        desc: "3-column grid — Infant / Toddler / Preschool. Gets comments.",
-        tags: ["Engage"],
-      },
-      {
-        day: "THU",
-        date: "Jun 12",
-        program: "Business Mgmt",
-        title: '💼 "What Can You Do With a Business Diploma in Canada?"',
-        desc: "Navy/blue gradient. Career paths: financial manager, project manager, HR, marketing analyst. 52-week program.",
-        tags: ["Reach", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Jun 15",
-        program: "ECEA",
-        title: "🎬 Reel — POV: Your First Day as a Licensed ECEA",
-        desc: "Classroom photo, navy overlay. Trending POV shot-list format. Aspirational.",
-        tags: ["Reach"],
-      },
-      {
-        day: "THU",
-        date: "Jun 18",
-        program: "ECEA",
-        title: "🔥 Unpopular Opinion: ECEA is the Most Undervalued Career in Canada",
-        desc: 'Navy background, centred fire emoji. "Agree or disagree?" drives comments.',
-        tags: ["Engage", "Reach"],
-      },
-      {
-        day: "MON",
-        date: "Jun 22",
-        program: "ECEA",
-        title: "🎓 Reggio vs Montessori vs Play-Based — Interview Cheat Sheet",
-        desc: "3-panel colour-coded philosophy guide. High saves before interviews.",
-        tags: ["Save"],
-      },
-      {
-        day: "THU",
-        date: "Jun 26",
-        program: "ECEA",
-        title: "📅 Countdown — July 2026 Intake Closing",
-        desc: 'Navy background, coral countdown timer. DM "ENROLL" CTA. Urgency close.',
-        tags: ["Lead"],
-      },
-      {
-        day: "MON",
-        date: "Jun 29",
-        program: "ECEA",
-        title: "🤫 Things Nobody Tells You Before Becoming an ECEA",
-        desc: "Tips girl photo, dark overlay, honest list. High shares and tags.",
-        tags: ["Reach", "Engage"],
-      },
-    ],
-  },
-  {
-    label: "🌤 July",
-    title: "🌤 July 2026",
-    subtitle: "July total: 9 posts · 8 ECEA · 1 AI Web Design",
-    posts: [
-      {
-        day: "THU",
-        date: "Jul 3",
-        program: "ECEA",
-        title: '🎬 Reel — "5 Things I Wish I Knew Before ECEA"',
-        desc: 'Talking head. "Number 3 shocked me" hook. 60 sec. High saves.',
-        tags: ["Reach", "Save"],
-      },
-      {
-        day: "MON",
-        date: "Jul 6",
-        program: "ECEA",
-        title: "💙 Inclusion in the Childcare Room — 5 Principles",
-        desc: "Navy background, blue heart accents. Meaningful content builds loyal community.",
-        tags: ["Engage", "Save"],
-      },
-      {
-        day: "THU",
-        date: "Jul 10",
-        program: "AI Web Design",
-        title: "🤖 AI is Changing Design — Are You Ready?",
-        desc: "Purple gradient. Career paths: UX/UI Designer, AI Content Designer, Front-end Developer. 70-week diploma.",
-        tags: ["Reach", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Jul 13",
-        program: "ECEA",
-        title: "☔ 10 Rainy Day Activities for ECEAs",
-        desc: "Gradient header, white chip grid. Pure value. High save rate.",
-        tags: ["Save"],
-      },
-      {
-        day: "THU",
-        date: "Jul 17",
-        program: "ECEA",
-        title: "🎬 Reel — Answering Your ECEA Questions Pt. 1",
-        desc: "Show real DM screenshots. Q&A format. Builds trust and drives more DMs.",
-        tags: ["Engage", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Jul 20",
-        program: "ECEA",
-        title: "🙋 5 Questions Parents Will Always Ask You",
-        desc: "Navy background, chat bubble format. Practical value for practising ECEAs.",
-        tags: ["Save", "Engage"],
-      },
-      {
-        day: "THU",
-        date: "Jul 24",
-        program: "ECEA",
-        title: "🌍 Newcomer Post — Your Childcare Experience Counts",
-        desc: "Navy background, flag chip strip, 3-step path to Canadian ECEA certification.",
-        tags: ["Lead", "Reach"],
-      },
-      {
-        day: "MON",
-        date: "Jul 27",
-        program: "ECEA",
-        title: "🧠 Protecting Your Mental Health as an ECEA",
-        desc: "Classroom photo, dark overlay, 4 practical wellbeing tips. Community builder.",
-        tags: ["Engage"],
-      },
-      {
-        day: "THU",
-        date: "Jul 31",
-        program: "ECEA",
-        title: "🎬 Reel — Why I Chose Childcare Over a Corporate Job",
-        desc: "Values-driven opinion piece. Purpose over paycheque angle. 45 sec.",
-        tags: ["Reach", "Engage"],
-      },
-    ],
-  },
-  {
-    label: "🌅 August",
-    title: "🌅 August 2026",
-    subtitle: "August total: 9 posts · 7 ECEA · 1 French · 1 CIRA Brand",
-    posts: [
-      {
-        day: "MON",
-        date: "Aug 3",
-        program: "ECEA",
-        title: "🗓 Your First Week as an ECEA — What to Expect",
-        desc: "Gradient header, white body, 4 numbered realistic tips. Gets tags and shares.",
-        tags: ["Engage", "Reach"],
-      },
-      {
-        day: "THU",
-        date: "Aug 7",
-        program: "French",
-        title: "🇫🇷 Did You Know French Could Fast-Track Your Work Permit?",
-        desc: "Green gradient. 22-week program, CLB 5, Francophone Mobility path. Perfect for newcomer audience.",
-        tags: ["Reach", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Aug 10",
-        program: "ECEA",
-        title: "📖 How CIRA Students Study While Working Full Time",
-        desc: 'Jannaton photo background, navy overlay. Breaks the "I do not have time" objection.',
-        tags: ["Lead"],
-      },
-      {
-        day: "THU",
-        date: "Aug 14",
-        program: "ECEA",
-        title: "🔥 Burnout in Childcare — Let’s Talk About It",
-        desc: "Photo background, honest wellbeing content. 5 signs and how to protect yourself.",
-        tags: ["Engage", "Reach"],
-      },
-      {
-        day: "MON",
-        date: "Aug 17",
-        program: "ECEA",
-        title: "✨ Then vs Now — Career Transformation Split",
-        desc: 'White background, vertical split. Warm gradient "then" / navy "now." Aspirational.',
-        tags: ["Lead", "Reach"],
-      },
-      {
-        day: "THU",
-        date: "Aug 21",
-        program: "CIRA Brand",
-        title: "🎓 Which CIRA Program Is Right for You?",
-        desc: 'Navy background, 4 colour-coded program rows. ECEA · Business · AI Web Design · French. DM us "WHICH PROGRAM" CTA.',
-        tags: ["Reach", "Lead"],
-      },
-      {
-        day: "MON",
-        date: "Aug 24",
-        program: "ECEA",
-        title: "🎬 Reel — Answering Your ECEA Questions Pt. 2",
-        desc: "Follow-up to July reel. Use comment questions from Pt. 1. Rewards engaged followers.",
-        tags: ["Engage", "Lead"],
-      },
-      {
-        day: "THU",
-        date: "Aug 28",
-        program: "ECEA",
-        title: "🚀 September Intake — Final Enrollment Push",
-        desc: "Classroom photo full bleed, navy overlay, checklist and coral CTA button.",
-        tags: ["Lead"],
-      },
-      {
-        day: "MON",
-        date: "Aug 31",
-        program: "ECEA",
-        title: "📋 ECEA Interview Prep Checklist — 5 Things to Do",
-        desc: "Gradient header, white checklist body. High saves. Strong close to the quarter.",
-        tags: ["Save", "Lead"],
-      },
-    ],
-  },
-];
-
-const programCaptions = [
-  {
-    program: "Business Mgmt",
-    date: "Thu Jun 12",
-    title: "What Can You Do With a Business Diploma in Canada?",
-    gradient: "from-[#1a3a8a] to-[#2d5be3]",
-    details:
-      "52-week program · 960 hours · Vancouver campus · Strategy, finance, leadership & marketing",
-    caption:
-      "Looking for a career that puts you in charge? 💼\n\nCIRA's Business Management Diploma is a 52-week program that gives you the real-world skills to lead, manage, and grow in any industry.\n\nGraduates go into roles like:\n→ Financial Manager\n→ Project Manager\n→ Human Resources\n→ Business Consultant\n→ Marketing Research Analyst\n→ Administrative Leadership\n\nIn-class, distance, and blended delivery. Based in Vancouver.\n\nNot sure which CIRA program is right for you? DM us and we'll help you figure it out.",
-  },
-  {
-    program: "AI Web Design",
-    date: "Thu Jul 10",
-    title: "AI is Changing Design. Are You Ready?",
-    gradient: "from-[#6c3fc5] to-[#9b59b6]",
-    details:
-      "70-week diploma · 1,410 hours · Graphic design + UX/UI + AI tools + web development",
-    caption:
-      "The design industry is changing fast — and the people who know how to use AI are getting hired first. 🤖\n\nCIRA's AI-Powered Web Design & Development program is a 70-week diploma combining:\n🎨 Graphic design\n💻 Web development & WordPress\n🤖 AI tools for creative automation\n🧠 UX/UI design\n\nCareer paths after graduation:\n→ UX/UI Designer\n→ Front-end Developer\n→ AI Content Designer\n→ Generative AI Specialist\n→ Visual / Graphic Designer",
-  },
-  {
-    program: "French",
-    date: "Thu Aug 7",
-    title: "Did You Know French Could Fast-Track Your Work Permit?",
-    gradient: "from-[#1a7a45] to-[#27ae60]",
-    details: "22-week program · 480 hours · CLB 5 target · Francophone Mobility path",
-    caption:
-      "For newcomers to Canada — this one is important. 🇫🇷\n\nDid you know that reaching CLB 5 French proficiency is one of the requirements for the Francophone Mobility Work Permit?\n\nCIRA's French for Professional Communication program:\n✅ Targets CLB 5 across all 4 language skills\n✅ Focuses on Canadian workplace scenarios\n✅ Provides a per-skill results report\n✅ Is delivered in Vancouver — in-person, online, or blended",
-  },
-  {
-    program: "CIRA Brand",
-    date: "Thu Aug 21",
-    title: "Which CIRA Program Is Right for You?",
-    gradient: "from-[#1a3a8a] to-[#0d2560]",
-    details: "ECEA · Business Management · AI Web Design · French",
-    caption:
-      "Not sure which path is right for you? Here's every CIRA program in one place. 🎓\n\n👶 ECEA — if you love working with young children\n💼 Business Management — if you want to manage and lead\n🤖 AI-Powered Web Design — if you want to design, build websites, and work with AI tools\n🇫🇷 French for Professional Communication — if you want to reach CLB 5 for professional or immigration purposes\n\nDM us “WHICH PROGRAM” and we’ll help match you to the right one.",
-  },
-];
+const emptyPost = (date = "2026-05-23"): FormPost => ({
+  title: "",
+  post_date: date,
+  platform: "Instagram",
+  status: "Draft",
+  program: "ECEA",
+  assignee: "",
+  caption: "",
+  design_notes: "",
+  media_url: "",
+  post_type: "Static",
+  post_goal: "Engage",
+  image_url: "",
+});
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -350,21 +71,7 @@ export default function Home() {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
-
-  const [newPost, setNewPost] = useState<FormPost>({
-    title: "",
-    post_date: "2026-05-23",
-    platform: "Instagram",
-    status: "Draft",
-    program: "ECEA",
-    assignee: "",
-    caption: "",
-    design_notes: "",
-    media_url: "",
-    post_type: "Static",
-    post_goal: "Engage",
-    image_url: "",
-  });
+  const [newPost, setNewPost] = useState<FormPost>(emptyPost());
 
   const platforms = [
     "All Platforms",
@@ -387,15 +94,10 @@ export default function Home() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-
-      if (session?.user) {
-        fetchPosts();
-      }
+      if (session?.user) fetchPosts();
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   async function checkUser() {
@@ -406,9 +108,7 @@ export default function Home() {
     setUser(session?.user || null);
     setCheckingUser(false);
 
-    if (session?.user) {
-      fetchPosts();
-    }
+    if (session?.user) fetchPosts();
   }
 
   async function login() {
@@ -422,9 +122,7 @@ export default function Home() {
       password: loginPassword,
     });
 
-    if (error) {
-      alert("Login failed: " + error.message);
-    }
+    if (error) alert("Login failed: " + error.message);
   }
 
   async function logout() {
@@ -509,26 +207,10 @@ export default function Home() {
       return;
     }
 
-    if (data) {
-      setPosts([...posts, ...data]);
-    }
+    if (data) setPosts([...posts, ...data]);
 
     setShowForm(false);
-
-    setNewPost({
-      title: "",
-      post_date: "2026-05-23",
-      platform: "Instagram",
-      status: "Draft",
-      program: "ECEA",
-      assignee: "",
-      caption: "",
-      design_notes: "",
-      media_url: "",
-      post_type: "Static",
-      post_goal: "Engage",
-      image_url: "",
-    });
+    setNewPost(emptyPost());
   }
 
   async function saveChanges() {
@@ -578,7 +260,6 @@ export default function Home() {
 
   async function deletePost(postId: string) {
     const confirmed = confirm("Are you sure you want to delete this post?");
-
     if (!confirmed) return;
 
     const { error } = await supabase.from("posts").delete().eq("id", postId);
@@ -624,13 +305,8 @@ export default function Home() {
 
     const days: (number | null)[] = [];
 
-    for (let i = 0; i < startDay; i++) {
-      days.push(null);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
-    }
+    for (let i = 0; i < startDay; i++) days.push(null);
+    for (let day = 1; day <= daysInMonth; day++) days.push(day);
 
     return days;
   }, [year, month]);
@@ -642,25 +318,13 @@ export default function Home() {
     )}`;
   }
 
-  function openNewPostForDay(day: number) {
-    const selectedDate = makeDateString(day);
-
-    setNewPost({
-      title: "",
-      post_date: selectedDate,
-      platform: "Instagram",
-      status: "Draft",
-      program: "ECEA",
-      assignee: "",
-      caption: "",
-      design_notes: "",
-      media_url: "",
-      post_type: "Static",
-      post_goal: "Engage",
-      image_url: "",
-    });
-
+  function openNewPostForDate(dateString: string) {
+    setNewPost(emptyPost(dateString));
     setShowForm(true);
+  }
+
+  function openNewPostForDay(day: number) {
+    openNewPostForDate(makeDateString(day));
   }
 
   function postsForDay(day: number) {
@@ -668,11 +332,8 @@ export default function Home() {
 
     return posts.filter((post) => {
       const sameDate = post.post_date === dateString;
-
       const samePlatform =
-        selectedPlatform === "All Platforms" ||
-        post.platform === selectedPlatform;
-
+        selectedPlatform === "All Platforms" || post.platform === selectedPlatform;
       const sameStatus =
         selectedStatus === "All Statuses" || post.status === selectedStatus;
 
@@ -719,7 +380,7 @@ export default function Home() {
   }
 
   function programKey(program: string | null) {
-    if (program === "Business") return "biz";
+    if (program === "Business" || program === "Business Mgmt") return "biz";
     if (program === "AI Web Design") return "ai";
     if (program === "French") return "fr";
     if (program === "CIRA Brand") return "cira";
@@ -783,12 +444,9 @@ export default function Home() {
       return "bg-white text-[#777] border border-[#e8eaf2] hover:text-[#0d2560]";
     }
 
-    if (status === "Published")
-      return "bg-[#128C7E] text-white border-transparent";
-    if (status === "Scheduled")
-      return "bg-[#0d2560] text-white border-transparent";
-    if (status === "Draft")
-      return "bg-[#f5c842] text-[#2a2a3d] border-transparent";
+    if (status === "Published") return "bg-[#128C7E] text-white border-transparent";
+    if (status === "Scheduled") return "bg-[#0d2560] text-white border-transparent";
+    if (status === "Draft") return "bg-[#f5c842] text-[#2a2a3d] border-transparent";
 
     return "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white border-transparent";
   }
@@ -857,6 +515,7 @@ export default function Home() {
             <p className="text-xs font-black uppercase tracking-[0.2em] text-white/40">
               Social Media Planner
             </p>
+
             <h1 className="cira-heading mt-1 text-3xl font-black leading-tight lg:text-4xl">
               Content Calendar
               <br />
@@ -864,6 +523,7 @@ export default function Home() {
                 {activeView === "planning" ? "3-Month Plan" : monthTitle}
               </em>
             </h1>
+
             <p className="mt-2 text-xs text-white/50">
               Logged in as {user.email}
             </p>
@@ -880,7 +540,10 @@ export default function Home() {
 
             <button
               type="button"
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setNewPost(emptyPost());
+                setShowForm(true);
+              }}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-lg"
             >
               + New Post
@@ -939,39 +602,21 @@ export default function Home() {
         </div>
 
         {activeView === "planning" && (
-  <ThreeMonthPlan
-    posts={posts}
-    draggedPostId={draggedPostId}
-    setDraggedPostId={setDraggedPostId}
-    onPostClick={setSelectedPost}
-    onMovePostToDate={movePostToDate}
-    onAddPostForDate={(dateString) => {
-      setNewPost({
-        title: "",
-        post_date: dateString,
-        platform: "Instagram",
-        status: "Draft",
-        program: "ECEA",
-        assignee: "",
-        caption: "",
-        design_notes: "",
-        media_url: "",
-        post_type: "Static",
-        post_goal: "Engage",
-        image_url: "",
-      });
-
-      setShowForm(true);
-    }}
-  />
-)}
+          <ThreeMonthPlan
+            posts={posts}
+            draggedPostId={draggedPostId}
+            setDraggedPostId={setDraggedPostId}
+            onPostClick={setSelectedPost}
+            onMovePostToDate={movePostToDate}
+            onAddPostForDate={openNewPostForDate}
+          />
+        )}
 
         {activeView === "calendar" && (
           <>
             <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
               <span className="font-black text-[#e8453c]">Tip:</span> Click a
-              date or the + button to add a post. Drag a post card to reschedule
-              it.
+              date or the + button to add a post. Drag a post card to reschedule it.
             </div>
 
             <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
@@ -1101,7 +746,6 @@ export default function Home() {
                           type="button"
                           onClick={() => openNewPostForDay(day)}
                           className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560] transition hover:bg-[#e8453c] hover:text-white"
-                          title="Add post on this date"
                         >
                           {day}
                         </button>
@@ -1110,7 +754,6 @@ export default function Home() {
                           type="button"
                           onClick={() => openNewPostForDay(day)}
                           className="rounded-lg bg-[#fff8f5] px-2 py-1 text-[9px] font-black text-[#e8453c] transition hover:bg-[#e8453c] hover:text-white"
-                          title="Add post on this date"
                         >
                           +
                         </button>
@@ -1118,75 +761,18 @@ export default function Home() {
 
                       <div className="space-y-2">
                         {postsForDay(day).map((post) => (
-                          <button
-                            type="button"
+                          <PostCard
                             key={post.id}
-                            draggable
-                            onDragStart={() => setDraggedPostId(post.id)}
-                            onDragEnd={() => setDraggedPostId(null)}
-                            onClick={() => {
-                              if (!draggedPostId) setSelectedPost(post);
-                            }}
-                            className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                              draggedPostId === post.id
-                                ? "opacity-50"
-                                : "opacity-100"
-                            }`}
-                          >
-                            <div className="flex">
-                              <div
-                                className={`w-1.5 shrink-0 ${programAccent(
-                                  post.program
-                                )}`}
-                              />
-
-                              <div className="min-w-0 flex-1 p-3">
-                                <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
-                                      post.program
-                                    )}`}
-                                  >
-                                    {post.program || "Program"}
-                                  </span>
-
-                                  <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
-                                    {post.platform}
-                                  </span>
-                                </div>
-
-                                <div className="truncate text-xs font-black leading-snug text-[#0d2560]">
-                                  {post.title}
-                                </div>
-
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
-                                      post.status
-                                    )}`}
-                                  >
-                                    {post.status}
-                                  </span>
-
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
-                                      post.post_type
-                                    )}`}
-                                  >
-                                    {post.post_type || "Static"}
-                                  </span>
-
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
-                                      post.post_goal
-                                    )}`}
-                                  >
-                                    {post.post_goal || "Engage"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </button>
+                            post={post}
+                            draggedPostId={draggedPostId}
+                            setDraggedPostId={setDraggedPostId}
+                            setSelectedPost={setSelectedPost}
+                            programAccent={programAccent}
+                            programPill={programPill}
+                            statusTag={statusTag}
+                            typeTag={typeTag}
+                            goalTag={goalTag}
+                          />
                         ))}
                       </div>
                     </>
@@ -1214,7 +800,7 @@ export default function Home() {
           postTypes={postTypes}
           postGoals={postGoals}
           post={newPost}
-          setPost={setNewPost}
+          setPost={(post) => setNewPost(post)}
           onCancel={() => setShowForm(false)}
           onSave={addPost}
           onUploadImage={uploadPostImage}
@@ -1242,7 +828,7 @@ export default function Home() {
           postTypes={postTypes}
           postGoals={postGoals}
           post={editingPost}
-          setPost={setEditingPost}
+          setPost={(post) => setEditingPost(post)}
           onCancel={() => setEditingPost(null)}
           onSave={saveChanges}
           onUploadImage={uploadPostImage}
@@ -1252,218 +838,90 @@ export default function Home() {
   );
 }
 
-function ThreeMonthPlan() {
-  const [activePlanTab, setActivePlanTab] = useState(0);
-
+function PostCard({
+  post,
+  draggedPostId,
+  setDraggedPostId,
+  setSelectedPost,
+  programAccent,
+  programPill,
+  statusTag,
+  typeTag,
+  goalTag,
+}: {
+  post: Post;
+  draggedPostId: string | null;
+  setDraggedPostId: (id: string | null) => void;
+  setSelectedPost: (post: Post) => void;
+  programAccent: (program: string | null) => string;
+  programPill: (program: string | null) => string;
+  statusTag: (status: string) => string;
+  typeTag: (type: string | null) => string;
+  goalTag: (goal: string | null) => string;
+}) {
   return (
-    <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
-        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
-        <p className="relative z-10 text-xs font-black uppercase tracking-[0.18em] text-white/40">
-          Planning Board
-        </p>
-        <h2 className="cira-heading relative z-10 mt-1 text-3xl font-black leading-tight">
-          3-Month Content Calendar
-          <br />
-          <em className="not-italic text-[#f9956b]">June · July · August 2026</em>
-        </h2>
-        <p className="relative z-10 mt-2 text-xs text-white/50">
-          Corrected dates · All 4 programs · ECEA-dominant
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 border-b-2 border-[#e8eaf2] bg-white sm:grid-cols-4">
-        {planMonths.map((month, index) => (
-          <button
-            key={month.label}
-            type="button"
-            onClick={() => setActivePlanTab(index)}
-            className={`border-b-4 px-2 py-3 text-center text-xs font-black transition ${
-              activePlanTab === index
-                ? "border-[#e8453c] text-[#0d2560]"
-                : "border-transparent text-[#aaa] hover:text-[#e8453c]"
-            }`}
-          >
-            {month.label}
-          </button>
-        ))}
-
-        <button
-          type="button"
-          onClick={() => setActivePlanTab(3)}
-          className={`border-b-4 px-2 py-3 text-center text-xs font-black transition ${
-            activePlanTab === 3
-              ? "border-[#e8453c] text-[#0d2560]"
-              : "border-transparent text-[#aaa] hover:text-[#e8453c]"
-          }`}
-        >
-          🎨 Program Posts
-        </button>
-      </div>
-
-      <div className="bg-[#e5e9f2] p-4">
-        {activePlanTab < 3 ? (
-          <MonthPlan month={planMonths[activePlanTab]} />
-        ) : (
-          <ProgramPosts />
-        )}
-      </div>
-    </section>
-  );
-}
-
-function MonthPlan({ month }: { month: (typeof planMonths)[number] }) {
-  return (
-    <div>
-      <h3 className="cira-heading mb-4 text-xl font-black text-[#0d2560]">
-        {month.title}
-      </h3>
-
-      <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-        <p className="mb-3 text-xs font-black text-[#0d2560]">
-          Post days highlighted
-        </p>
-
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
-            <div key={day} className="text-[10px] font-black text-[#777]">
-              {day}
-            </div>
-          ))}
-
-          {Array.from({ length: 35 }).map((_, index) => {
-            const number = index + 1;
-            const isPostDay = month.posts.some((post) =>
-              post.date.endsWith(String(number))
-            );
-
-            return (
-              <div
-                key={index}
-                className={`rounded-lg py-1.5 text-xs font-bold ${
-                  isPostDay
-                    ? "bg-gradient-to-r from-[#e8453c] to-[#f9956b] text-white"
-                    : "bg-[#f4f6fb] text-[#777]"
-                }`}
-              >
-                {number <= 31 ? number : "—"}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {month.posts.map((post) => (
-          <PlanPostRow key={`${post.date}-${post.title}`} post={post} />
-        ))}
-      </div>
-
-      <div className="mt-4 rounded-xl bg-white p-3 text-center text-xs font-bold text-[#777] shadow-sm">
-        {month.subtitle}
-      </div>
-    </div>
-  );
-}
-
-function PlanPostRow({ post }: { post: PlanPost }) {
-  return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+    <button
+      type="button"
+      draggable
+      onDragStart={() => setDraggedPostId(post.id)}
+      onDragEnd={() => setDraggedPostId(null)}
+      onClick={() => {
+        if (!draggedPostId) setSelectedPost(post);
+      }}
+      className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+        draggedPostId === post.id ? "opacity-50" : "opacity-100"
+      }`}
+    >
       <div className="flex">
-        <div
-          className={`w-1.5 shrink-0 bg-gradient-to-b ${planProgramGradient(
-            post.program
-          )}`}
-        />
+        <div className={`w-1.5 shrink-0 ${programAccent(post.program)}`} />
 
-        <div className="flex-1 p-4">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="w-10 text-xs font-black text-[#e8453c]">
-              {post.day}
-            </span>
-
-            <span className="rounded-lg bg-[#f4f6fb] px-2 py-1 text-[10px] font-black text-[#777]">
-              {post.date}
-            </span>
-
+        <div className="min-w-0 flex-1 p-3">
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <span
-              className={`rounded-full px-2 py-1 text-[9px] font-black ${planPillClass(
+              className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
                 post.program
               )}`}
             >
-              {post.program}
+              {post.program || "Program"}
+            </span>
+
+            <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+              {post.platform}
             </span>
           </div>
 
-          <h4 className="text-sm font-black leading-snug text-[#0d2560]">
+          <div className="truncate text-xs font-black leading-snug text-[#0d2560]">
             {post.title}
-          </h4>
-
-          <p className="mt-1 text-xs leading-relaxed text-[#777]">{post.desc}</p>
+          </div>
 
           <div className="mt-2 flex flex-wrap gap-1">
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`rounded-full px-2 py-1 text-[9px] font-black ${planTagClass(
-                  tag
-                )}`}
-              >
-                {tag}
-              </span>
-            ))}
+            <span
+              className={`rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
+                post.status
+              )}`}
+            >
+              {post.status}
+            </span>
+
+            <span
+              className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
+                post.post_type
+              )}`}
+            >
+              {post.post_type || "Static"}
+            </span>
+
+            <span
+              className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
+                post.post_goal
+              )}`}
+            >
+              {post.post_goal || "Engage"}
+            </span>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ProgramPosts() {
-  return (
-    <div>
-      <h3 className="cira-heading mb-2 text-xl font-black text-[#0d2560]">
-        🎨 Program Spotlight Posts
-      </h3>
-
-      <p className="mb-4 text-xs font-bold leading-relaxed text-[#777]">
-        Full captions for the non-ECEA program posts and the all-programs brand
-        post.
-      </p>
-
-      <div className="space-y-5">
-        {programCaptions.map((item) => (
-          <div key={item.title}>
-            <div
-              className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} p-5 text-white`}
-            >
-              <div className="absolute -right-12 -top-14 h-44 w-44 rounded-full border-[18px] border-white/10" />
-
-              <p className="relative z-10 text-[10px] font-black uppercase tracking-wide text-white/60">
-                {item.date} · {item.program}
-              </p>
-
-              <h4 className="cira-heading relative z-10 mt-2 text-2xl font-black leading-tight">
-                {item.title}
-              </h4>
-
-              <p className="relative z-10 mt-2 text-xs leading-relaxed text-white/75">
-                {item.details}
-              </p>
-            </div>
-
-            <div className="mt-2 rounded-2xl bg-white p-4 shadow-sm">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-wide text-[#e8453c]">
-                ✍️ Caption
-              </p>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-[#333]">
-                {item.caption}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -1486,18 +944,18 @@ function IGGridPreview({
 
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm">
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
-            Gallery
-          </p>
-          <h2 className="cira-heading text-2xl font-black text-[#0d2560]">
-            IG Grid Preview
-          </h2>
-          <p className="text-xs font-bold text-[#777]">
-            Upload 1080 × 1350 px images for the best 4:5 Instagram preview.
-          </p>
-        </div>
+      <div className="mb-4">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
+          Gallery
+        </p>
+
+        <h2 className="cira-heading text-2xl font-black text-[#0d2560]">
+          IG Grid Preview
+        </h2>
+
+        <p className="text-xs font-bold text-[#777]">
+          Upload 1080 × 1350 px images for the best 4:5 Instagram preview.
+        </p>
       </div>
 
       <div className="grid max-w-[900px] grid-cols-3 gap-1 bg-white">
@@ -1520,6 +978,7 @@ function IGGridPreview({
                   <p className="text-[9px] font-black uppercase tracking-wide text-white/70">
                     {post.program || "CIRA"}
                   </p>
+
                   <h3 className="mt-2 text-sm font-black leading-tight">
                     {post.title}
                   </h3>
@@ -1533,6 +992,7 @@ function IGGridPreview({
                   >
                     {post.post_type || "Static"}
                   </span>
+
                   <span
                     className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
                       post.post_goal
@@ -1543,12 +1003,6 @@ function IGGridPreview({
                 </div>
               </div>
             )}
-
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition group-hover:opacity-100">
-              <p className="truncate text-[10px] font-bold text-white">
-                {post.title}
-              </p>
-            </div>
           </button>
         ))}
 
@@ -1629,7 +1083,6 @@ function PostDetailsModal({
                 type="button"
                 onClick={onClose}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f6fb] text-xl font-black text-[#0d2560] hover:bg-[#e8453c] hover:text-white"
-                title="Close"
               >
                 ×
               </button>
@@ -1687,10 +1140,7 @@ function PostDetailsModal({
               <InfoRow label="Post Type" value={post.post_type || "Static"} />
               <InfoRow label="Post Goal" value={post.post_goal || "Engage"} />
               <InfoRow label="Assignee" value={post.assignee || "None"} />
-              <TextBox
-                label="Caption"
-                value={post.caption || "No caption added."}
-              />
+              <TextBox label="Caption" value={post.caption || "No caption added."} />
               <TextBox
                 label="Design Notes"
                 value={post.design_notes || "No design notes added."}
@@ -1698,6 +1148,7 @@ function PostDetailsModal({
 
               <div>
                 <strong className="text-[#0d2560]">Media / Canva Link:</strong>
+
                 {post.media_url ? (
                   <a
                     href={post.media_url}
@@ -1778,7 +1229,6 @@ function PostFormModal({
 
   async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     setUploadingImage(true);
@@ -1799,7 +1249,6 @@ function PostFormModal({
               type="button"
               onClick={onCancel}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-xl font-black text-white hover:bg-white/25"
-              title="Close"
             >
               ×
             </button>
@@ -1866,10 +1315,7 @@ function PostFormModal({
           <select
             value={post.status}
             onChange={(e) =>
-              setPost({
-                ...post,
-                status: e.target.value as Status,
-              })
+              setPost({ ...post, status: e.target.value as Status })
             }
             className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
           >
@@ -1913,11 +1359,6 @@ function PostFormModal({
                   src={post.image_url}
                   alt="Post preview"
                   className="aspect-[4/5] w-full rounded-2xl border border-[#e8eaf2] object-cover"
-                  onError={() => {
-                    alert(
-                      "Image uploaded, but the image URL cannot be displayed. Check that the Supabase bucket is public."
-                    );
-                  }}
                 />
 
                 <a
@@ -1936,9 +1377,7 @@ function PostFormModal({
                       "Remove this image from the post? Remember to click Save after removing."
                     );
 
-                    if (confirmed) {
-                      setPost({ ...post, image_url: "" });
-                    }
+                    if (confirmed) setPost({ ...post, image_url: "" });
                   }}
                   className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
                 >
@@ -2026,27 +1465,4 @@ function TextBox({ label, value }: { label: string; value: string }) {
       </p>
     </div>
   );
-}
-
-function planProgramGradient(program: string) {
-  if (program === "Business Mgmt") return "from-[#1a3a8a] to-[#2d5be3]";
-  if (program === "AI Web Design") return "from-[#6c3fc5] to-[#9b59b6]";
-  if (program === "French") return "from-[#1a7a45] to-[#27ae60]";
-  if (program === "CIRA Brand") return "from-[#1a3a8a] to-[#0d2560]";
-  return "from-[#e8453c] via-[#f4724a] to-[#f9956b]";
-}
-
-function planPillClass(program: string) {
-  if (program === "Business Mgmt") return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
-  if (program === "AI Web Design") return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
-  if (program === "French") return "bg-[#1a7a45]/10 text-[#1a7a45]";
-  if (program === "CIRA Brand") return "bg-[#0d2560]/10 text-[#0d2560]";
-  return "bg-[#e8453c]/10 text-[#e8453c]";
-}
-
-function planTagClass(tag: string) {
-  if (tag === "Save") return "bg-[#f5c842]/20 text-[#8a6000]";
-  if (tag === "Lead") return "bg-[#0d2560]/10 text-[#0d2560]";
-  if (tag === "Reach") return "bg-[#e8453c]/10 text-[#e8453c]";
-  return "bg-[#25d366]/10 text-[#128C7E]";
 }
