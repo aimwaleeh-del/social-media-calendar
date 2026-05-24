@@ -5,7 +5,7 @@ import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 type Status = "Draft" | "Scheduled" | "Published";
-type ViewMode = "calendar" | "ig-grid";
+type ViewMode = "planning" | "calendar" | "ig-grid";
 
 type Post = {
   id: string;
@@ -48,7 +48,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
   const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
-  const [activeView, setActiveView] = useState<ViewMode>("calendar");
+  const [activeView, setActiveView] = useState<ViewMode>("planning");
 
   const [showForm, setShowForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -540,6 +540,7 @@ export default function Home() {
             />
 
             <button
+              type="button"
               onClick={login}
               className="w-full rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-3 text-sm font-black text-white shadow-lg"
             >
@@ -564,7 +565,9 @@ export default function Home() {
             <h1 className="cira-heading mt-1 text-3xl font-black leading-tight lg:text-4xl">
               Content Calendar
               <br />
-              <em className="not-italic text-[#f9956b]">{monthTitle}</em>
+              <em className="not-italic text-[#f9956b]">
+                {activeView === "planning" ? "3-Month Plan" : monthTitle}
+              </em>
             </h1>
             <p className="mt-2 text-xs text-white/50">
               Logged in as {user.email}
@@ -605,6 +608,18 @@ export default function Home() {
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
             type="button"
+            onClick={() => setActiveView("planning")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "planning"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            3-Month Plan
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveView("calendar")}
             className={`rounded-xl px-4 py-2 text-xs font-black ${
               activeView === "calendar"
@@ -627,6 +642,16 @@ export default function Home() {
             IG Grid Preview
           </button>
         </div>
+
+        {activeView === "planning" && (
+          <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
+            <iframe
+              src="/cira-calendar-final.html"
+              className="h-[900px] w-full border-0"
+              title="CIRA 3-Month Content Calendar"
+            />
+          </section>
+        )}
 
         {activeView === "calendar" && (
           <>
