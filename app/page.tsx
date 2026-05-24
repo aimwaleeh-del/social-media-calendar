@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import ThreeMonthPlan from "./components/ThreeMonthPlan";
+import IdeaLibrary from "./components/IdeaLibrary";
 
 type Status = "Draft" | "Scheduled" | "Published";
-type ViewMode = "planning" | "calendar" | "ig-grid";
+type ViewMode = "ideas" | "planning" | "calendar" | "ig-grid";
 
 export type Post = {
   id: string;
@@ -47,7 +48,7 @@ const emptyPost = (date = "2026-05-23"): FormPost => ({
   program: "ECEA",
   assignee: "",
   caption: "",
-  design_notes: "",
+
   media_url: "",
   post_type: "Static",
   post_goal: "Engage",
@@ -64,7 +65,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
   const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
-  const [activeView, setActiveView] = useState<ViewMode>("planning");
+  const [activeView, setActiveView] = useState<ViewMode>("ideas");
 
   const [showForm, setShowForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -79,7 +80,6 @@ export default function Home() {
     "Facebook",
     "LinkedIn",
     "TikTok",
-    "Twitter/X",
   ];
 
   const statuses = ["All Statuses", "Draft", "Scheduled", "Published"];
@@ -565,6 +565,17 @@ export default function Home() {
       <div className="p-4 lg:p-6">
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
+  type="button"
+  onClick={() => setActiveView("ideas")}
+  className={`rounded-xl px-4 py-2 text-xs font-black ${
+    activeView === "ideas"
+      ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+      : "bg-[#f4f6fb] text-[#0d2560]"
+  }`}
+>
+  Idea Library
+</button>
+          <button
             type="button"
             onClick={() => setActiveView("planning")}
             className={`rounded-xl px-4 py-2 text-xs font-black ${
@@ -600,7 +611,7 @@ export default function Home() {
             IG Grid Preview
           </button>
         </div>
-
+{activeView === "ideas" && <IdeaLibrary />}
         {activeView === "planning" && (
           <ThreeMonthPlan
             posts={posts}
