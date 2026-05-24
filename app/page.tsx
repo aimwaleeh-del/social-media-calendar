@@ -313,6 +313,15 @@ export default function Home() {
     month: "long",
     year: "numeric",
   });
+  const previousMonthTitle = new Date(year, month - 1, 1).toLocaleString("default", {
+  month: "long",
+  year: "numeric",
+});
+
+const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
+  month: "long",
+  year: "numeric",
+});
 
   const calendarDays = useMemo(() => {
     const firstDay = new Date(year, month, 1);
@@ -625,64 +634,36 @@ export default function Home() {
             </div>
 
             <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
-              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
-                Platform
-              </p>
+  <div className="flex items-center justify-between gap-4">
+    <button
+      onClick={previousMonth}
+      className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+    >
+      ← Previous
+    </button>
 
-              <div className="flex flex-wrap gap-2">
-                {platforms.map((platform) => (
-                  <button
-                    key={platform}
-                    onClick={() => setSelectedPlatform(platform)}
-                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${platformButton(
-                      platform,
-                      selectedPlatform === platform
-                    )}`}
-                  >
-                    {platform}
-                  </button>
-                ))}
-              </div>
+    <div className="flex flex-1 items-center justify-center gap-3">
+      <div className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898]">
+        {previousMonthTitle}
+      </div>
 
-              <p className="mb-3 mt-5 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
-                Status
-              </p>
+      <div className="rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white">
+        {monthTitle}
+      </div>
 
-              <div className="flex flex-wrap gap-2">
-                {statuses.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${statusButton(
-                      status,
-                      selectedStatus === status
-                    )}`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            </section>
+      <div className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898]">
+        {nextMonthTitle}
+      </div>
+    </div>
 
-            <section className="mt-4 flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
-              <button
-                onClick={previousMonth}
-                className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
-              >
-                ← Previous
-              </button>
-
-              <h2 className="cira-heading text-xl font-black text-[#0d2560]">
-                {monthTitle}
-              </h2>
-
-              <button
-                onClick={nextMonth}
-                className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
-              >
-                Next →
-              </button>
-            </section>
+    <button
+      onClick={nextMonth}
+      className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
+    >
+      Next →
+    </button>
+  </div>
+</section>
 
             {loading && (
               <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold text-[#777] shadow-sm">
