@@ -887,20 +887,20 @@ export default function Home() {
         />
       )}
 
-{selectedPost && !editingPost && (
-  <PostDetailsModal
-    post={selectedPost}
-    programAccent={programAccent}
-    programPill={programPill}
-    statusTag={statusTag}
-    typeTag={typeTag}
-    goalTag={goalTag}
-    onClose={() => setSelectedPost(null)}
-    onEdit={() => setEditingPost(selectedPost)}
-    onDelete={() => deletePost(selectedPost.id)}
-    onMoveToIdeas={() => movePostToIdeaLibrary(selectedPost)}
-  />
-)}
+      {selectedPost && !editingPost && (
+        <PostDetailsModal
+          post={selectedPost}
+          programAccent={programAccent}
+          programPill={programPill}
+          statusTag={statusTag}
+          typeTag={typeTag}
+          goalTag={goalTag}
+          onClose={() => setSelectedPost(null)}
+          onEdit={() => setEditingPost(selectedPost)}
+          onDelete={() => deletePost(selectedPost.id)}
+          onMoveToIdeas={() => movePostToIdeaLibrary(selectedPost)}
+        />
+      )}
 
       {editingPost && (
         <PostFormModal
@@ -1005,43 +1005,7 @@ function PostCard({
     </button>
   );
 }
-<div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row">
-  <div className="flex flex-wrap gap-2">
-    <button
-      type="button"
-      onClick={onMoveToIdeas}
-      className="rounded-2xl bg-[#0d2560] px-4 py-2 text-sm font-black text-white hover:bg-[#e8453c]"
-    >
-      Move to Idea Library
-    </button>
 
-    <button
-      type="button"
-      onClick={onDelete}
-      className="rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white"
-    >
-      Delete
-    </button>
-  </div>
-
-  <div className="flex gap-3">
-    <button
-      type="button"
-      onClick={onClose}
-      className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
-    >
-      Close
-    </button>
-
-    <button
-      type="button"
-      onClick={onEdit}
-      className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
-    >
-      Edit
-    </button>
-  </div>
-</div>
 function IGGridPreview({
   posts,
   setSelectedPost,
@@ -1259,7 +1223,12 @@ function PostDetailsModal({
               <InfoRow label="Post Type" value={post.post_type || "Static"} />
               <InfoRow label="Post Goal" value={post.post_goal || "Engage"} />
               <InfoRow label="Assignee" value={post.assignee || "None"} />
-              <TextBox label="Caption" value={post.caption || "No caption added."} />
+
+              <TextBox
+                label="Caption"
+                value={post.caption || "No caption added."}
+              />
+
               <TextBox
                 label="Design Notes"
                 value={post.design_notes || "No design notes added."}
