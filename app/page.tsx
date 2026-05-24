@@ -614,11 +614,11 @@ export default function Home() {
 
       <section className="border-b border-[#e8eaf2] bg-white px-4 py-3">
         <div className="flex flex-wrap gap-4 text-xs font-black text-[#444]">
-          <Legend color="#e8453c" label="ECEA" />
-          <Legend color="#2d5be3" label="Business Mgmt" />
-          <Legend color="#9b59b6" label="AI Web Design" />
-          <Legend color="#27ae60" label="French" />
-          <Legend color="#0d2560" label="CIRA Brand" />
+          <Legend color="#f1ca33" label="ECEA" />
+          <Legend color="#1e4ca1" label="Business Mgmt" />
+          <Legend color="#f0870f" label="AI Web Design" />
+          <Legend color="#d24b66" label="French" />
+          <Legend color="#024da8" label="CIRA Brand" />
         </div>
       </section>
 
