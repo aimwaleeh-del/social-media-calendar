@@ -910,40 +910,40 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
 
 function programGradient(program: string | null) {
   if (program === "Business" || program === "Business Mgmt") {
-    return "from-[#1a3a8a] to-[#2d5be3]";
+    return "from-[#1e4caf] to-[#1e4caf]";
   }
 
   if (program === "AI Web Design") {
-    return "from-[#6c3fc5] to-[#9b59b6]";
+    return "from-[#f0870f] to-[#f0870f]";
   }
 
   if (program === "French") {
-    return "from-[#1a7a45] to-[#27ae60]";
+    return "from-[#d24b66] to-[#d24b66]";
   }
 
   if (program === "CIRA Brand") {
-    return "from-[#1a3a8a] to-[#0d2560]";
+    return "from-[#024da8] to-[#024da8]";
   }
 
-  return "from-[#e8453c] via-[#f4724a] to-[#f9956b]";
+  return "from-[#f1ca33] to-[#f1ca33]";
 }
 
 function programPill(program: string | null) {
   if (program === "Business" || program === "Business Mgmt") {
-    return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
+    return "bg-[#1e4caf]/10 text-[#1e4caf]";
   }
 
   if (program === "AI Web Design") {
-    return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
+    return "bg-[#f0870f]/10 text-[#f0870f]";
   }
 
   if (program === "French") {
-    return "bg-[#1a7a45]/10 text-[#1a7a45]";
+    return "bg-[#d24b66]/10 text-[#d24b66]";
   }
 
   if (program === "CIRA Brand") {
-    return "bg-[#0d2560]/10 text-[#0d2560]";
+    return "bg-[#024da8]/10 text-[#024da8]";
   }
 
-  return "bg-[#e8453c]/10 text-[#e8453c]";
+  return "bg-[#f1ca33]/20 text-[#8a6000]";
 }
