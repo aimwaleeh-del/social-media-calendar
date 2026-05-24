@@ -5,9 +5,10 @@ import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import ThreeMonthPlan from "./components/ThreeMonthPlan";
 import IdeaLibrary from "./components/IdeaLibrary";
+import TaskManagement from "./components/TaskManagement";
 
 type Status = "Draft" | "Scheduled" | "Published";
-type ViewMode = "ideas" | "planning" | "calendar" | "ig-grid";
+type ViewMode = "ideas" | "planning" | "calendar" | "ig-grid" | "tasks";
 
 export type Post = {
   id: string;
@@ -717,6 +718,18 @@ function programPill(program: string | null) {
                   >
                     {platform}
                   </button>
+                  <button
+  type="button"
+  onClick={() => setActiveView("tasks")}
+  className={`rounded-xl px-4 py-2 text-xs font-black ${
+    activeView === "tasks"
+      ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+      : "bg-[#f4f6fb] text-[#0d2560]"
+  }`}
+>
+  Task Management
+</button>
+{activeView === "tasks" && <TaskManagement />}
                 ))}
               </div>
 
