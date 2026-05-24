@@ -1,5 +1,5 @@
 "use client";
-
+import ThreeMonthPlan from "./components/ThreeMonthPlan";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
@@ -938,7 +938,33 @@ export default function Home() {
           </button>
         </div>
 
-        {activeView === "planning" && <ThreeMonthPlan />}
+        {activeView === "planning" && (
+  <ThreeMonthPlan
+    posts={posts}
+    draggedPostId={draggedPostId}
+    setDraggedPostId={setDraggedPostId}
+    onPostClick={setSelectedPost}
+    onMovePostToDate={movePostToDate}
+    onAddPostForDate={(dateString) => {
+      setNewPost({
+        title: "",
+        post_date: dateString,
+        platform: "Instagram",
+        status: "Draft",
+        program: "ECEA",
+        assignee: "",
+        caption: "",
+        design_notes: "",
+        media_url: "",
+        post_type: "Static",
+        post_goal: "Engage",
+        image_url: "",
+      });
+
+      setShowForm(true);
+    }}
+  />
+)}
 
         {activeView === "calendar" && (
           <>
