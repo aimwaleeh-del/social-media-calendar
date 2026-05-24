@@ -80,6 +80,7 @@ export default function Home() {
     "Facebook",
     "LinkedIn",
     "TikTok",
+    "Twitter/X",
   ];
 
   const statuses = ["All Statuses", "Draft", "Scheduled", "Published"];
@@ -197,7 +198,10 @@ export default function Home() {
       return;
     }
 
-    const { data, error } = await supabase.from("posts").insert([newPost]).select();
+    const { data, error } = await supabase
+      .from("posts")
+      .insert([newPost])
+      .select();
 
     if (error) {
       alert(
@@ -275,6 +279,58 @@ export default function Home() {
     setPosts(posts.filter((post) => post.id !== postId));
     setSelectedPost(null);
     setEditingPost(null);
+  }
+
+  async function movePostToIdeaLibrary(post: Post) {
+    const confirmed = confirm(
+      "Move this post back to the Idea Library? It will be removed from the Calendar."
+    );
+
+    if (!confirmed) return;
+
+    const ideaCategory = post.image_url ? "Mood Board" : "Ideas";
+
+    const newIdea = {
+      title: post.title,
+      category: ideaCategory,
+      content_type: post.post_type || "Static",
+      description: post.design_notes || "",
+      notes: post.caption || "",
+      program: post.program || "ECEA",
+      status: "Idea",
+      image_url: post.image_url || "",
+    };
+
+    const { error: ideaError } = await supabase
+      .from("content_ideas")
+      .insert([newIdea]);
+
+    if (ideaError) {
+      alert("Could not move post to Idea Library:\n\n" + ideaError.message);
+      return;
+    }
+
+    const { error: deleteError } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", post.id);
+
+    if (deleteError) {
+      alert(
+        "The idea was created, but the calendar post could not be deleted:\n\n" +
+          deleteError.message
+      );
+      return;
+    }
+
+    setPosts((currentPosts) =>
+      currentPosts.filter((currentPost) => currentPost.id !== post.id)
+    );
+
+    setSelectedPost(null);
+    setEditingPost(null);
+
+    alert("Moved back to Idea Library.");
   }
 
   const year = currentDate.getFullYear();
@@ -520,7 +576,11 @@ export default function Home() {
               Content Calendar
               <br />
               <em className="not-italic text-[#f9956b]">
-                {activeView === "planning" ? "3-Month Plan" : monthTitle}
+                {activeView === "ideas"
+                  ? "Idea Library"
+                  : activeView === "planning"
+                  ? "3-Month Plan"
+                  : monthTitle}
               </em>
             </h1>
 
@@ -565,16 +625,17 @@ export default function Home() {
       <div className="p-4 lg:p-6">
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
-  type="button"
-  onClick={() => setActiveView("ideas")}
-  className={`rounded-xl px-4 py-2 text-xs font-black ${
-    activeView === "ideas"
-      ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-      : "bg-[#f4f6fb] text-[#0d2560]"
-  }`}
->
-  Idea Library
-</button>
+            type="button"
+            onClick={() => setActiveView("ideas")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "ideas"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            Idea Library
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveView("planning")}
@@ -611,13 +672,15 @@ export default function Home() {
             IG Grid Preview
           </button>
         </div>
-{activeView === "ideas" && (
-  <IdeaLibrary
-    onPostCreated={(post) => {
-      setPosts((currentPosts) => [post, ...currentPosts]);
-    }}
-  />
-)}
+
+        {activeView === "ideas" && (
+          <IdeaLibrary
+            onPostCreated={(post) => {
+              setPosts((currentPosts) => [post, ...currentPosts]);
+            }}
+          />
+        )}
+
         {activeView === "planning" && (
           <ThreeMonthPlan
             posts={posts}
@@ -835,6 +898,7 @@ export default function Home() {
           onClose={() => setSelectedPost(null)}
           onEdit={() => setEditingPost(selectedPost)}
           onDelete={() => deletePost(selectedPost.id)}
+          onMoveToIdeas={() => movePostToIdeaLibrary(selectedPost)}
         />
       )}
 
@@ -1041,6 +1105,7 @@ function PostDetailsModal({
   onClose,
   onEdit,
   onDelete,
+  onMoveToIdeas,
 }: {
   post: Post;
   programAccent: (program: string | null) => string;
@@ -1051,6 +1116,7 @@ function PostDetailsModal({
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onMoveToIdeas: () => void;
 }) {
   const [imageBroken, setImageBroken] = useState(false);
 
@@ -1183,14 +1249,24 @@ function PostDetailsModal({
               </div>
             </div>
 
-            <div className="mt-6 flex justify-between gap-3">
-              <button
-                type="button"
-                onClick={onDelete}
-                className="rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white"
-              >
-                Delete
-              </button>
+            <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={onMoveToIdeas}
+                  className="rounded-2xl bg-[#0d2560] px-4 py-2 text-sm font-black text-white hover:bg-[#e8453c]"
+                >
+                  Move to Idea Library
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white"
+                >
+                  Delete
+                </button>
+              </div>
 
               <div className="flex gap-3">
                 <button
