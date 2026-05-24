@@ -611,7 +611,13 @@ export default function Home() {
             IG Grid Preview
           </button>
         </div>
-{activeView === "ideas" && <IdeaLibrary />}
+{activeView === "ideas" && (
+  <IdeaLibrary
+    onPostCreated={(post) => {
+      setPosts((currentPosts) => [post, ...currentPosts]);
+    }}
+  />
+)}
         {activeView === "planning" && (
           <ThreeMonthPlan
             posts={posts}

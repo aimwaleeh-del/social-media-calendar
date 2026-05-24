@@ -18,6 +18,26 @@ type ContentIdea = {
   created_at: string;
 };
 
+type Post = {
+  id: string;
+  title: string;
+  post_date: string;
+  platform: string;
+  status: "Draft" | "Scheduled" | "Published";
+  program: string | null;
+  assignee: string | null;
+  caption: string | null;
+  design_notes: string | null;
+  media_url: string | null;
+  post_type: string | null;
+  post_goal: string | null;
+  image_url: string | null;
+};
+
+type IdeaLibraryProps = {
+  onPostCreated?: (post: Post) => void;
+};
+
 type IdeaForm = {
   title: string;
   category: IdeaCategory;
@@ -42,7 +62,7 @@ const blankIdea: IdeaForm = {
   image_url: "",
 };
 
-export default function IdeaLibrary() {
+export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
   const [activeCategory, setActiveCategory] = useState<IdeaCategory>("Ideas");
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -51,6 +71,10 @@ export default function IdeaLibrary() {
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [draggingOver, setDraggingOver] = useState(false);
+
+  const [schedulingIdea, setSchedulingIdea] = useState<ContentIdea | null>(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduling, setScheduling] = useState(false);
 
   useEffect(() => {
     fetchIdeas();
@@ -79,6 +103,7 @@ export default function IdeaLibrary() {
       ...blankIdea,
       category,
       content_type: category === "Mood Board" ? "Design" : "Carousel",
+      program: category === "Mood Board" ? "CIRA Brand" : "ECEA",
     });
     setShowForm(true);
   }
@@ -133,10 +158,10 @@ export default function IdeaLibrary() {
     const publicUrl = await uploadSingleImage(file);
 
     if (publicUrl) {
-      setForm({
-        ...form,
+      setForm((currentForm) => ({
+        ...currentForm,
         image_url: publicUrl,
-      });
+      }));
     }
 
     setUploadingImage(false);
@@ -187,7 +212,7 @@ export default function IdeaLibrary() {
     }
 
     if (newItems.length > 0) {
-      setIdeas([...newItems, ...ideas]);
+      setIdeas((currentIdeas) => [...newItems, ...currentIdeas]);
     }
 
     setUploadingImage(false);
@@ -231,12 +256,14 @@ export default function IdeaLibrary() {
         .select();
 
       if (error) {
-        alert("Could not update idea:\n\n" + error.message);
+        alert("Could not update item:\n\n" + error.message);
         return;
       }
 
       if (data && data[0]) {
-        setIdeas(ideas.map((idea) => (idea.id === data[0].id ? data[0] : idea)));
+        setIdeas((currentIdeas) =>
+          currentIdeas.map((idea) => (idea.id === data[0].id ? data[0] : idea))
+        );
       }
     } else {
       const { data, error } = await supabase
@@ -245,12 +272,12 @@ export default function IdeaLibrary() {
         .select();
 
       if (error) {
-        alert("Could not save idea:\n\n" + error.message);
+        alert("Could not save item:\n\n" + error.message);
         return;
       }
 
       if (data) {
-        setIdeas([...data, ...ideas]);
+        setIdeas((currentIdeas) => [...data, ...currentIdeas]);
       }
     }
 
@@ -270,7 +297,76 @@ export default function IdeaLibrary() {
       return;
     }
 
-    setIdeas(ideas.filter((idea) => idea.id !== id));
+    setIdeas((currentIdeas) => currentIdeas.filter((idea) => idea.id !== id));
+  }
+
+  function openSchedulePopup(idea: ContentIdea) {
+    setSchedulingIdea(idea);
+    setScheduleDate("");
+  }
+
+  async function moveIdeaToCalendar() {
+    if (!schedulingIdea) return;
+
+    if (!scheduleDate) {
+      alert("Please choose a calendar date.");
+      return;
+    }
+
+    setScheduling(true);
+
+    const postType =
+      schedulingIdea.content_type === "Design" ||
+      schedulingIdea.content_type === "Reference" ||
+      schedulingIdea.content_type === "Brand Inspiration"
+        ? "Static"
+        : schedulingIdea.content_type || "Static";
+
+    const newPost = {
+      title: schedulingIdea.title,
+      post_date: scheduleDate,
+      platform: "Instagram",
+      status: "Draft",
+      program: schedulingIdea.program || "ECEA",
+      assignee: "",
+      caption: schedulingIdea.notes || schedulingIdea.description || "",
+      design_notes: schedulingIdea.description || "",
+      media_url: "",
+      post_type: postType,
+      post_goal: "Engage",
+      image_url: schedulingIdea.image_url || "",
+    };
+
+    const { data, error } = await supabase.from("posts").insert([newPost]).select();
+
+    if (error) {
+      setScheduling(false);
+      alert("Could not move item to calendar:\n\n" + error.message);
+      return;
+    }
+
+    if (data && data[0]) {
+      if (onPostCreated) {
+        onPostCreated(data[0]);
+      }
+
+      await supabase
+        .from("content_ideas")
+        .update({ status: "Used" })
+        .eq("id", schedulingIdea.id);
+
+      setIdeas((currentIdeas) =>
+        currentIdeas.map((idea) =>
+          idea.id === schedulingIdea.id ? { ...idea, status: "Used" } : idea
+        )
+      );
+    }
+
+    setScheduling(false);
+    setSchedulingIdea(null);
+    setScheduleDate("");
+
+    alert("Item moved to Calendar.");
   }
 
   const filteredIdeas = ideas.filter((idea) => idea.category === activeCategory);
@@ -293,7 +389,8 @@ export default function IdeaLibrary() {
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Add content ideas and drag images into your mood board.
+          Add content ideas, drag images into your mood board, then move items
+          to the calendar when ready.
         </p>
       </div>
 
@@ -362,7 +459,8 @@ export default function IdeaLibrary() {
               </p>
 
               <p className="mt-2 text-sm font-bold text-[#777]">
-                You can drop one image or multiple images at once.
+                You can drop one image or multiple images at once. No size limit
+                is set by the app.
               </p>
 
               <label className="mt-4 inline-block cursor-pointer rounded-2xl bg-white px-5 py-3 text-sm font-black text-[#e8453c] shadow-sm hover:bg-[#fff8f5]">
@@ -439,6 +537,10 @@ export default function IdeaLibrary() {
                         <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
                           {idea.content_type || "Design"}
                         </span>
+
+                        <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
+                          {idea.status || "Idea"}
+                        </span>
                       </div>
 
                       <h4 className="text-sm font-black leading-snug text-[#0d2560]">
@@ -453,13 +555,21 @@ export default function IdeaLibrary() {
                     </div>
                   </button>
 
-                  <div className="flex gap-2 px-4 pb-4">
+                  <div className="flex flex-wrap gap-2 px-4 pb-4">
                     <button
                       type="button"
                       onClick={() => openEditIdea(idea)}
                       className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
                     >
                       Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openSchedulePopup(idea)}
+                      className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
+                    >
+                      Move to Calendar
                     </button>
 
                     <button
@@ -522,13 +632,21 @@ export default function IdeaLibrary() {
                         </p>
                       )}
 
-                      <div className="mt-4 flex gap-2">
+                      <div className="mt-4 flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={() => openEditIdea(idea)}
                           className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
                         >
                           Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openSchedulePopup(idea)}
+                          className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
+                        >
+                          Move to Calendar
                         </button>
 
                         <button
@@ -723,6 +841,63 @@ export default function IdeaLibrary() {
                   className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
                 >
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {schedulingIdea && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-[28px] bg-white shadow-2xl">
+            <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
+              <h2 className="cira-heading text-2xl font-black">
+                Move to Calendar
+              </h2>
+
+              <p className="mt-2 text-xs text-white/60">
+                Choose the date where this item should become a scheduled post.
+              </p>
+            </div>
+
+            <div className="space-y-4 p-6">
+              <div className="rounded-2xl bg-[#f4f6fb] p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-[#e8453c]">
+                  Item
+                </p>
+
+                <h3 className="mt-1 text-sm font-black text-[#0d2560]">
+                  {schedulingIdea.title}
+                </h3>
+              </div>
+
+              <input
+                type="date"
+                value={scheduleDate}
+                onChange={(event) => setScheduleDate(event.target.value)}
+                className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+              />
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSchedulingIdea(null);
+                    setScheduleDate("");
+                  }}
+                  className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={moveIdeaToCalendar}
+                  disabled={scheduling}
+                  className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white disabled:opacity-60"
+                >
+                  {scheduling ? "Moving..." : "Move to Calendar"}
                 </button>
               </div>
             </div>
