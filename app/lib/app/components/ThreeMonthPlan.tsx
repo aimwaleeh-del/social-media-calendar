@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -12,7 +11,7 @@ type PlanPost = {
   tags: string[];
 };
 
-const months: {
+const planMonths: {
   label: string;
   title: string;
   subtitle: string;
@@ -21,7 +20,7 @@ const months: {
   {
     label: "☀️ June",
     title: "☀️ June 2026",
-    subtitle: "June total: 9 posts · 7 ECEA · 1 Business Mgmt",
+    subtitle: "June total: 9 posts · 8 ECEA · 1 Business Mgmt",
     posts: [
       {
         day: "MON",
@@ -100,7 +99,7 @@ const months: {
   {
     label: "🌤 July",
     title: "🌤 July 2026",
-    subtitle: "July total: 10 posts · 9 ECEA · 1 AI Web Design",
+    subtitle: "July total: 9 posts · 8 ECEA · 1 AI Web Design",
     posts: [
       {
         day: "THU",
@@ -257,68 +256,6 @@ const months: {
   },
 ];
 
-const programCaptions = [
-  {
-    program: "Business Mgmt",
-    date: "Thu Jun 12",
-    title: "What Can You Do With a Business Diploma in Canada?",
-    gradient: "from-[#1a3a8a] to-[#2d5be3]",
-    details: "52-week program · 960 hours · Vancouver campus · Strategy, finance, leadership & marketing",
-    caption:
-      "Looking for a career that puts you in charge? 💼\n\nCIRA's Business Management Diploma is a 52-week program that gives you the real-world skills to lead, manage, and grow in any industry.\n\nGraduates go into roles like:\n→ Financial Manager\n→ Project Manager\n→ Human Resources\n→ Business Consultant\n→ Marketing Research Analyst\n→ Administrative Leadership\n\nIn-class, distance, and blended delivery. Based in Vancouver.\n\nNot sure which CIRA program is right for you? DM us and we'll help you figure it out.",
-  },
-  {
-    program: "AI Web Design",
-    date: "Thu Jul 10",
-    title: "AI is Changing Design. Are You Ready?",
-    gradient: "from-[#6c3fc5] to-[#9b59b6]",
-    details: "70-week diploma · 1,410 hours · Graphic design + UX/UI + AI tools + web development",
-    caption:
-      "The design industry is changing fast — and the people who know how to use AI are getting hired first. 🤖\n\nCIRA's AI-Powered Web Design & Development program is a 70-week diploma combining:\n🎨 Graphic design\n💻 Web development & WordPress\n🤖 AI tools for creative automation\n🧠 UX/UI design\n\nCareer paths after graduation:\n→ UX/UI Designer\n→ Front-end Developer\n→ AI Content Designer\n→ Generative AI Specialist\n→ Visual / Graphic Designer",
-  },
-  {
-    program: "French",
-    date: "Thu Aug 7",
-    title: "Did You Know French Could Fast-Track Your Work Permit?",
-    gradient: "from-[#1a7a45] to-[#27ae60]",
-    details: "22-week program · 480 hours · CLB 5 target · Francophone Mobility path",
-    caption:
-      "For newcomers to Canada — this one is important. 🇫🇷\n\nDid you know that reaching CLB 5 French proficiency is one of the requirements for the Francophone Mobility Work Permit?\n\nCIRA's French for Professional Communication program:\n✅ Targets CLB 5 across all 4 language skills\n✅ Focuses on Canadian workplace scenarios\n✅ Provides a per-skill results report\n✅ Is delivered in Vancouver — in-person, online, or blended",
-  },
-  {
-    program: "CIRA Brand",
-    date: "Thu Aug 21",
-    title: "Which CIRA Program Is Right for You?",
-    gradient: "from-[#1a3a8a] to-[#0d2560]",
-    details: "ECEA · Business Management · AI Web Design · French",
-    caption:
-      "Not sure which path is right for you? Here's every CIRA program in one place. 🎓\n\n👶 ECEA — if you love working with young children\n💼 Business Management — if you want to manage and lead\n🤖 AI-Powered Web Design — if you want to design, build websites, and work with AI tools\n🇫🇷 French for Professional Communication — if you want to reach CLB 5 for professional or immigration purposes\n\nDM us “WHICH PROGRAM” and we’ll help match you to the right one.",
-  },
-];
-
-function programClass(program: string) {
-  if (program === "Business Mgmt") return "from-[#1a3a8a] to-[#2d5be3]";
-  if (program === "AI Web Design") return "from-[#6c3fc5] to-[#9b59b6]";
-  if (program === "French") return "from-[#1a7a45] to-[#27ae60]";
-  if (program === "CIRA Brand") return "from-[#1a3a8a] to-[#0d2560]";
-  return "from-[#e8453c] via-[#f4724a] to-[#f9956b]";
-}
-
-function pillClass(program: string) {
-  if (program === "Business Mgmt") return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
-  if (program === "AI Web Design") return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
-  if (program === "French") return "bg-[#1a7a45]/10 text-[#1a7a45]";
-  if (program === "CIRA Brand") return "bg-[#0d2560]/10 text-[#0d2560]";
-  return "bg-[#e8453c]/10 text-[#e8453c]";
-}
-
-function tagClass(tag: string) {
-  if (tag === "Save") return "bg-[#f5c842]/20 text-[#8a6000]";
-  if (tag === "Lead") return "bg-[#0d2560]/10 text-[#0d2560]";
-  if (tag === "Reach") return "bg-[#e8453c]/10 text-[#e8453c]";
-  return "bg-[#25d366]/10 text-[#128C7E]";
-}
-
 export default function ThreeMonthPlan() {
   const [activeMonth, setActiveMonth] = useState(0);
 
@@ -326,16 +263,21 @@ export default function ThreeMonthPlan() {
     <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
       <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
         <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
+
         <p className="relative z-10 text-xs font-black uppercase tracking-[0.18em] text-white/40">
           Planning Board
         </p>
+
         <h2 className="cira-heading relative z-10 mt-1 text-3xl font-black leading-tight">
           3-Month Content Calendar
           <br />
-          <em className="not-italic text-[#f9956b]">June · July · August 2026</em>
+          <em className="not-italic text-[#f9956b]">
+            June · July · August 2026
+          </em>
         </h2>
+
         <p className="relative z-10 mt-2 text-xs text-white/50">
-          Corrected dates · All 4 programs · ECEA-dominant
+          Corrected dates · All programs · ECEA-dominant
         </p>
       </div>
 
@@ -349,8 +291,8 @@ export default function ThreeMonthPlan() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 border-b-2 border-[#e8eaf2] bg-white">
-        {months.map((month, index) => (
+      <div className="grid grid-cols-3 border-b-2 border-[#e8eaf2] bg-white">
+        {planMonths.map((month, index) => (
           <button
             key={month.label}
             type="button"
@@ -364,32 +306,16 @@ export default function ThreeMonthPlan() {
             {month.label}
           </button>
         ))}
-
-        <button
-          type="button"
-          onClick={() => setActiveMonth(3)}
-          className={`border-b-4 px-2 py-3 text-center text-xs font-black transition ${
-            activeMonth === 3
-              ? "border-[#e8453c] text-[#0d2560]"
-              : "border-transparent text-[#aaa] hover:text-[#e8453c]"
-          }`}
-        >
-          🎨 Program Posts
-        </button>
       </div>
 
       <div className="bg-[#e5e9f2] p-4">
-        {activeMonth < 3 ? (
-          <MonthPlan month={months[activeMonth]} />
-        ) : (
-          <ProgramPosts />
-        )}
+        <MonthPlan month={planMonths[activeMonth]} />
       </div>
     </section>
   );
 }
 
-function MonthPlan({ month }: { month: (typeof months)[number] }) {
+function MonthPlan({ month }: { month: (typeof planMonths)[number] }) {
   return (
     <div>
       <h3 className="cira-heading mb-4 text-xl font-black text-[#0d2560]">
@@ -432,7 +358,7 @@ function MonthPlan({ month }: { month: (typeof months)[number] }) {
 
       <div className="space-y-3">
         {month.posts.map((post) => (
-          <PostRow key={`${post.date}-${post.title}`} post={post} />
+          <PlanPostRow key={`${post.date}-${post.title}`} post={post} />
         ))}
       </div>
 
@@ -443,22 +369,28 @@ function MonthPlan({ month }: { month: (typeof months)[number] }) {
   );
 }
 
-function PostRow({ post }: { post: PlanPost }) {
+function PlanPostRow({ post }: { post: PlanPost }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
       <div className="flex">
-        <div className={`w-1.5 shrink-0 bg-gradient-to-b ${programClass(post.program)}`} />
+        <div
+          className={`w-1.5 shrink-0 bg-gradient-to-b ${programGradient(
+            post.program
+          )}`}
+        />
 
         <div className="flex-1 p-4">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="w-10 text-xs font-black text-[#e8453c]">
               {post.day}
             </span>
+
             <span className="rounded-lg bg-[#f4f6fb] px-2 py-1 text-[10px] font-black text-[#777]">
               {post.date}
             </span>
+
             <span
-              className={`rounded-full px-2 py-1 text-[9px] font-black ${pillClass(
+              className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
                 post.program
               )}`}
             >
@@ -470,13 +402,15 @@ function PostRow({ post }: { post: PlanPost }) {
             {post.title}
           </h4>
 
-          <p className="mt-1 text-xs leading-relaxed text-[#777]">{post.desc}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[#777]">
+            {post.desc}
+          </p>
 
           <div className="mt-2 flex flex-wrap gap-1">
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className={`rounded-full px-2 py-1 text-[9px] font-black ${tagClass(
+                className={`rounded-full px-2 py-1 text-[9px] font-black ${tagPill(
                   tag
                 )}`}
               >
@@ -490,50 +424,6 @@ function PostRow({ post }: { post: PlanPost }) {
   );
 }
 
-function ProgramPosts() {
-  return (
-    <div>
-      <h3 className="cira-heading mb-2 text-xl font-black text-[#0d2560]">
-        🎨 Program Spotlight Posts
-      </h3>
-      <p className="mb-4 text-xs font-bold leading-relaxed text-[#777]">
-        Full captions for the non-ECEA program posts and the all-programs brand
-        post.
-      </p>
-
-      <div className="space-y-5">
-        {programCaptions.map((item) => (
-          <div key={item.title}>
-            <div
-              className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} p-5 text-white`}
-            >
-              <div className="absolute -right-12 -top-14 h-44 w-44 rounded-full border-[18px] border-white/10" />
-              <p className="relative z-10 text-[10px] font-black uppercase tracking-wide text-white/60">
-                {item.date} · {item.program}
-              </p>
-              <h4 className="cira-heading relative z-10 mt-2 text-2xl font-black leading-tight">
-                {item.title}
-              </h4>
-              <p className="relative z-10 mt-2 text-xs leading-relaxed text-white/75">
-                {item.details}
-              </p>
-            </div>
-
-            <div className="mt-2 rounded-2xl bg-white p-4 shadow-sm">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-wide text-[#e8453c]">
-                ✍️ Caption
-              </p>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-[#333]">
-                {item.caption}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
@@ -541,4 +431,27 @@ function LegendDot({ color, label }: { color: string; label: string }) {
       {label}
     </div>
   );
+}
+
+function programGradient(program: string) {
+  if (program === "Business Mgmt") return "from-[#1a3a8a] to-[#2d5be3]";
+  if (program === "AI Web Design") return "from-[#6c3fc5] to-[#9b59b6]";
+  if (program === "French") return "from-[#1a7a45] to-[#27ae60]";
+  if (program === "CIRA Brand") return "from-[#1a3a8a] to-[#0d2560]";
+  return "from-[#e8453c] via-[#f4724a] to-[#f9956b]";
+}
+
+function programPill(program: string) {
+  if (program === "Business Mgmt") return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
+  if (program === "AI Web Design") return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
+  if (program === "French") return "bg-[#1a7a45]/10 text-[#1a7a45]";
+  if (program === "CIRA Brand") return "bg-[#0d2560]/10 text-[#0d2560]";
+  return "bg-[#e8453c]/10 text-[#e8453c]";
+}
+
+function tagPill(tag: string) {
+  if (tag === "Save") return "bg-[#f5c842]/20 text-[#8a6000]";
+  if (tag === "Lead") return "bg-[#0d2560]/10 text-[#0d2560]";
+  if (tag === "Reach") return "bg-[#e8453c]/10 text-[#e8453c]";
+  return "bg-[#25d366]/10 text-[#128C7E]";
 }
