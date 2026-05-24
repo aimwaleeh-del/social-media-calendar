@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type DragEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 type IdeaCategory = "Ideas" | "Mood Board";
@@ -50,6 +50,7 @@ export default function IdeaLibrary() {
   const [form, setForm] = useState<IdeaForm>(blankIdea);
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [draggingOver, setDraggingOver] = useState(false);
 
   useEffect(() => {
     fetchIdeas();
@@ -97,17 +98,11 @@ export default function IdeaLibrary() {
     setShowForm(true);
   }
 
-  async function uploadIdeaImage(file: File) {
-    if (!file) return;
-
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload a JPG, PNG, or WEBP image.");
-      return;
+  async function uploadSingleImage(file: File) {
+    if (!file.type.startsWith("image/")) {
+      alert(`${file.name} is not an image file.`);
+      return null;
     }
-
-    setUploadingImage(true);
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}-${Math.random()
@@ -123,26 +118,103 @@ export default function IdeaLibrary() {
       });
 
     if (uploadError) {
-      setUploadingImage(false);
       alert("Could not upload image:\n\n" + uploadError.message);
-      return;
+      return null;
     }
 
     const { data } = supabase.storage.from("post-images").getPublicUrl(filePath);
 
-    setForm({
-      ...form,
-      image_url: data.publicUrl,
-    });
+    return data.publicUrl;
+  }
+
+  async function uploadImageToForm(file: File) {
+    setUploadingImage(true);
+
+    const publicUrl = await uploadSingleImage(file);
+
+    if (publicUrl) {
+      setForm({
+        ...form,
+        image_url: publicUrl,
+      });
+    }
 
     setUploadingImage(false);
   }
 
-  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+  async function uploadMoodBoardFiles(files: FileList | File[]) {
+    const imageFiles = Array.from(files).filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (imageFiles.length === 0) {
+      alert("Please drop image files only.");
+      return;
+    }
+
+    setUploadingImage(true);
+
+    const newItems: ContentIdea[] = [];
+
+    for (const file of imageFiles) {
+      const publicUrl = await uploadSingleImage(file);
+
+      if (!publicUrl) continue;
+
+      const cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+
+      const { data, error } = await supabase
+        .from("content_ideas")
+        .insert([
+          {
+            title: cleanTitle,
+            category: "Mood Board",
+            content_type: "Design",
+            description: "",
+            notes: "",
+            program: "CIRA Brand",
+            status: "Idea",
+            image_url: publicUrl,
+          },
+        ])
+        .select();
+
+      if (error) {
+        alert("Could not save mood board image:\n\n" + error.message);
+      } else if (data && data[0]) {
+        newItems.push(data[0]);
+      }
+    }
+
+    if (newItems.length > 0) {
+      setIdeas([...newItems, ...ideas]);
+    }
+
+    setUploadingImage(false);
+  }
+
+  async function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDraggingOver(false);
+
+    if (activeCategory !== "Mood Board") return;
+
+    await uploadMoodBoardFiles(event.dataTransfer.files);
+  }
+
+  async function handleMoodBoardInput(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files) return;
+
+    await uploadMoodBoardFiles(files);
+    event.target.value = "";
+  }
+
+  async function handleFormImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    await uploadIdeaImage(file);
+    await uploadImageToForm(file);
   }
 
   async function saveIdea() {
@@ -188,26 +260,20 @@ export default function IdeaLibrary() {
   }
 
   async function deleteIdea(id: string) {
-    const confirmed = confirm("Delete this idea?");
+    const confirmed = confirm("Delete this item?");
     if (!confirmed) return;
 
     const { error } = await supabase.from("content_ideas").delete().eq("id", id);
 
     if (error) {
-      alert("Could not delete idea:\n\n" + error.message);
+      alert("Could not delete item:\n\n" + error.message);
       return;
     }
 
     setIdeas(ideas.filter((idea) => idea.id !== id));
   }
 
-  const filteredIdeas = ideas.filter((idea) => {
-    if (activeCategory === "Ideas") {
-      return idea.category === "Ideas";
-    }
-
-    return idea.category === "Mood Board";
-  });
+  const filteredIdeas = ideas.filter((idea) => idea.category === activeCategory);
 
   return (
     <section className="overflow-hidden rounded-[28px] bg-white shadow-sm">
@@ -227,7 +293,7 @@ export default function IdeaLibrary() {
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Add content ideas and mood board images without adding them to the calendar.
+          Add content ideas and drag images into your mood board.
         </p>
       </div>
 
@@ -273,13 +339,54 @@ export default function IdeaLibrary() {
               onClick={() => openNewIdea(activeCategory)}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-3 text-sm font-black text-white shadow-sm"
             >
-              {activeCategory === "Ideas" ? "+ Add Idea" : "+ Add Mood Board"}
+              {activeCategory === "Ideas" ? "+ Add Idea" : "+ Add Note"}
             </button>
           </div>
 
+          {activeCategory === "Mood Board" && (
+            <div
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDraggingOver(true);
+              }}
+              onDragLeave={() => setDraggingOver(false)}
+              onDrop={handleDrop}
+              className={`mb-5 rounded-[28px] border-2 border-dashed p-8 text-center transition ${
+                draggingOver
+                  ? "border-[#e8453c] bg-[#fff8f5]"
+                  : "border-[#e8eaf2] bg-[#f4f6fb]"
+              }`}
+            >
+              <p className="text-base font-black text-[#0d2560]">
+                Drag and drop mood board images here
+              </p>
+
+              <p className="mt-2 text-sm font-bold text-[#777]">
+                You can drop one image or multiple images at once.
+              </p>
+
+              <label className="mt-4 inline-block cursor-pointer rounded-2xl bg-white px-5 py-3 text-sm font-black text-[#e8453c] shadow-sm hover:bg-[#fff8f5]">
+                Choose Images
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleMoodBoardInput}
+                  className="hidden"
+                />
+              </label>
+
+              {uploadingImage && (
+                <p className="mt-3 text-xs font-bold text-[#777]">
+                  Uploading image...
+                </p>
+              )}
+            </div>
+          )}
+
           {loading ? (
             <p className="rounded-2xl bg-[#f4f6fb] p-5 text-sm font-bold text-[#777]">
-              Loading ideas...
+              Loading items...
             </p>
           ) : filteredIdeas.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#e8eaf2] bg-[#f4f6fb] p-10 text-center">
@@ -292,15 +399,15 @@ export default function IdeaLibrary() {
               <p className="mt-2 text-sm font-bold text-[#777]">
                 {activeCategory === "Ideas"
                   ? "Click “+ Add Idea” to save your first content idea."
-                  : "Click “+ Add Mood Board” to upload your first design reference."}
+                  : "Drag images here to start your mood board."}
               </p>
             </div>
           ) : activeCategory === "Mood Board" ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
               {filteredIdeas.map((idea) => (
                 <div
                   key={idea.id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="mb-4 break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm"
                 >
                   <button
                     type="button"
@@ -311,10 +418,10 @@ export default function IdeaLibrary() {
                       <img
                         src={idea.image_url}
                         alt={idea.title}
-                        className="aspect-[4/5] w-full object-cover"
+                        className="w-full"
                       />
                     ) : (
-                      <div className="flex aspect-[4/5] w-full items-center justify-center bg-[#d8d8d8] p-5 text-center text-sm font-bold text-[#777]">
+                      <div className="flex min-h-40 w-full items-center justify-center bg-[#d8d8d8] p-5 text-center text-sm font-bold text-[#777]">
                         No image uploaded
                       </div>
                     )}
@@ -546,8 +653,8 @@ export default function IdeaLibrary() {
 
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleImageChange}
+                    accept="image/*"
+                    onChange={handleFormImageChange}
                     className="w-full text-sm font-semibold text-[#777]"
                   />
 
@@ -562,7 +669,7 @@ export default function IdeaLibrary() {
                       <img
                         src={form.image_url}
                         alt="Mood board preview"
-                        className="aspect-[4/5] w-full rounded-2xl border border-[#e8eaf2] object-cover"
+                        className="w-full rounded-2xl border border-[#e8eaf2]"
                       />
 
                       <button
@@ -574,7 +681,7 @@ export default function IdeaLibrary() {
                       </button>
                     </div>
                   ) : (
-                    <div className="mt-3 flex aspect-[4/5] w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-center text-sm font-bold text-[#777]">
+                    <div className="mt-3 flex min-h-40 w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-center text-sm font-bold text-[#777]">
                       No image uploaded yet
                     </div>
                   )}
