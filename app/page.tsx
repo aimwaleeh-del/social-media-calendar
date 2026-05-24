@@ -1171,14 +1171,22 @@ function PostDetailsModal({
               </button>
             </div>
 
-            <div className="mb-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={onEdit}
-                className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
-              >
-                Edit / Replace Photo
-              </button>
+<div className="mb-4 flex flex-wrap gap-2">
+  <button
+    type="button"
+    onClick={onMoveToIdeas}
+    className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
+  >
+    Move to Idea Library
+  </button>
+
+  <button
+    type="button"
+    onClick={onEdit}
+    className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
+  >
+    Edit / Replace Photo
+  </button>
 
               {post.image_url && (
                 <a
