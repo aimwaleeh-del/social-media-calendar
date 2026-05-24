@@ -35,7 +35,7 @@ const blankTask: TaskForm = {
   category: "General",
 };
 
-const statuses = ["To Do", "In Progress", "Done"];
+const statuses = ["To Do", "In Progress", "Approved ✅", "Done"];
 const priorities = ["Low", "Medium", "High"];
 const categories = ["General", "Content", "Design", "Admin", "Follow Up"];
 

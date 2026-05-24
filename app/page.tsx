@@ -84,7 +84,7 @@ export default function Home() {
     "Twitter/X",
   ];
 
-  const statuses = ["All Statuses", "Draft", "Scheduled", "Published"];
+  const statuses = ["All Statuses", "Draft", "Scheduled", "Approved ✅", "Published"];
   const programs = ["ECEA", "Business", "AI Web Design", "French", "CIRA Brand"];
   const postTypes = ["Static", "Carousel", "Story", "Reel"];
   const postGoals = ["Save", "Engage", "Lead", "Reach"];
