@@ -444,25 +444,25 @@ export default function Home() {
     return "ecea";
   }
 
-function programAccent(program: string | null) {
-  const key = programKey(program);
+  function programAccent(program: string | null) {
+    const key = programKey(program);
 
-  if (key === "biz") return "bg-gradient-to-b from-[#1e4caf] to-[#1e4caf]";
-  if (key === "ai") return "bg-gradient-to-b from-[#f0870f] to-[#f0870f]";
-  if (key === "fr") return "bg-gradient-to-b from-[#d24b66] to-[#d24b66]";
-  if (key === "cira") return "bg-gradient-to-b from-[#024da8] to-[#024da8]";
-  return "bg-gradient-to-b from-[#f1ca33] to-[#f1ca33]";
-}
+    if (key === "biz") return "bg-gradient-to-b from-[#1e4caf] to-[#1e4caf]";
+    if (key === "ai") return "bg-gradient-to-b from-[#f0870f] to-[#f0870f]";
+    if (key === "fr") return "bg-gradient-to-b from-[#d24b66] to-[#d24b66]";
+    if (key === "cira") return "bg-gradient-to-b from-[#024da8] to-[#024da8]";
+    return "bg-gradient-to-b from-[#f1ca33] to-[#f1ca33]";
+  }
 
-function programPill(program: string | null) {
-  const key = programKey(program);
+  function programPill(program: string | null) {
+    const key = programKey(program);
 
-  if (key === "biz") return "bg-[#1e4caf]/10 text-[#1e4caf]";
-  if (key === "ai") return "bg-[#f0870f]/10 text-[#f0870f]";
-  if (key === "fr") return "bg-[#d24b66]/10 text-[#d24b66]";
-  if (key === "cira") return "bg-[#024da8]/10 text-[#024da8]";
-  return "bg-[#f1ca33]/20 text-[#8a6000]";
-}
+    if (key === "biz") return "bg-[#1e4caf]/10 text-[#1e4caf]";
+    if (key === "ai") return "bg-[#f0870f]/10 text-[#f0870f]";
+    if (key === "fr") return "bg-[#d24b66]/10 text-[#d24b66]";
+    if (key === "cira") return "bg-[#024da8]/10 text-[#024da8]";
+    return "bg-[#f1ca33]/20 text-[#8a6000]";
+  }
 
   function statusTag(status: string) {
     if (status === "Published") return "bg-[#25d366]/10 text-[#128C7E]";
@@ -581,6 +581,8 @@ function programPill(program: string | null) {
                   ? "Idea Library"
                   : activeView === "planning"
                   ? "3-Month Plan"
+                  : activeView === "tasks"
+                  ? "Task Management"
                   : monthTitle}
               </em>
             </h1>
@@ -616,74 +618,75 @@ function programPill(program: string | null) {
       <section className="border-b border-[#e8eaf2] bg-white px-4 py-3">
         <div className="flex flex-wrap gap-4 text-xs font-black text-[#444]">
           <Legend color="#f1ca33" label="ECEA" />
-          <Legend color="#1e4ca1" label="Business Mgmt" />
+          <Legend color="#1e4caf" label="Business Mgmt" />
           <Legend color="#f0870f" label="AI Web Design" />
           <Legend color="#d24b66" label="French" />
           <Legend color="#024da8" label="CIRA Brand" />
         </div>
       </section>
 
-<div className="mb-4 flex flex-wrap justify-end gap-2 rounded-2xl bg-white p-2 shadow-sm">
-  <button
-    type="button"
-    onClick={() => setActiveView("ideas")}
-    className={`rounded-xl px-4 py-2 text-xs font-black ${
-      activeView === "ideas"
-        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-        : "bg-[#f4f6fb] text-[#0d2560]"
-    }`}
-  >
-    Idea Library
-  </button>
+      <div className="p-4 lg:p-6">
+        <div className="mb-4 flex flex-wrap justify-end gap-2 rounded-2xl bg-white p-2 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveView("ideas")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "ideas"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            Idea Library
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveView("planning")}
-    className={`rounded-xl px-4 py-2 text-xs font-black ${
-      activeView === "planning"
-        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-        : "bg-[#f4f6fb] text-[#0d2560]"
-    }`}
-  >
-    3-Month Plan
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("planning")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "planning"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            3-Month Plan
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveView("calendar")}
-    className={`rounded-xl px-4 py-2 text-xs font-black ${
-      activeView === "calendar"
-        ? "bg-[#0d2560] text-white"
-        : "bg-[#f4f6fb] text-[#0d2560]"
-    }`}
-  >
-    Calendar
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("calendar")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "calendar"
+                ? "bg-[#0d2560] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            Calendar
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveView("ig-grid")}
-    className={`rounded-xl px-4 py-2 text-xs font-black ${
-      activeView === "ig-grid"
-        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-        : "bg-[#f4f6fb] text-[#0d2560]"
-    }`}
-  >
-    IG Grid Preview
-  </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("ig-grid")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "ig-grid"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            IG Grid Preview
+          </button>
 
-  <button
-    type="button"
-    onClick={() => setActiveView("tasks")}
-    className={`rounded-xl px-4 py-2 text-xs font-black ${
-      activeView === "tasks"
-        ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-        : "bg-[#f4f6fb] text-[#0d2560]"
-    }`}
-  >
-    Task Management
-  </button>
-</div>
+          <button
+            type="button"
+            onClick={() => setActiveView("tasks")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "tasks"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            Task Management
+          </button>
+        </div>
 
         {activeView === "ideas" && (
           <IdeaLibrary
@@ -729,18 +732,6 @@ function programPill(program: string | null) {
                   >
                     {platform}
                   </button>
-                  <button
-  type="button"
-  onClick={() => setActiveView("tasks")}
-  className={`rounded-xl px-4 py-2 text-xs font-black ${
-    activeView === "tasks"
-      ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
-      : "bg-[#f4f6fb] text-[#0d2560]"
-  }`}
->
-  Task Management
-</button>
-{activeView === "tasks" && <TaskManagement />}
                 ))}
               </div>
 
@@ -895,6 +886,8 @@ function programPill(program: string | null) {
             goalTag={goalTag}
           />
         )}
+
+        {activeView === "tasks" && <TaskManagement />}
       </div>
 
       {showForm && (
@@ -1195,22 +1188,22 @@ function PostDetailsModal({
               </button>
             </div>
 
-<div className="mb-4 flex flex-wrap gap-2">
-  <button
-    type="button"
-    onClick={onMoveToIdeas}
-    className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
-  >
-    Move to Idea Library
-  </button>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onMoveToIdeas}
+                className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
+              >
+                Move to Idea Library
+              </button>
 
-  <button
-    type="button"
-    onClick={onEdit}
-    className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
-  >
-    Edit / Replace Photo
-  </button>
+              <button
+                type="button"
+                onClick={onEdit}
+                className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
+              >
+                Edit / Replace Photo
+              </button>
 
               {post.image_url && (
                 <a
@@ -1288,14 +1281,6 @@ function PostDetailsModal({
 
             <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row">
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={onMoveToIdeas}
-                  className="rounded-2xl bg-[#0d2560] px-4 py-2 text-sm font-black text-white hover:bg-[#e8453c]"
-                >
-                  Move to Idea Library
-                </button>
-
                 <button
                   type="button"
                   onClick={onDelete}
