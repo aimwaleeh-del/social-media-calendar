@@ -48,7 +48,7 @@ const emptyPost = (date = "2026-05-23"): FormPost => ({
   program: "ECEA",
   assignee: "",
   caption: "",
-
+  design_notes: "",
   media_url: "",
   post_type: "Static",
   post_goal: "Engage",
