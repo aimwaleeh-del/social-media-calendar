@@ -577,9 +577,6 @@ export default function Home() {
           <Legend color="#0d2560" label="CIRA Brand" />
         </div>
       </section>
-<div className="bg-yellow-300 p-4 text-center text-xl font-black text-black">
-  TEST: I AM EDITING THE CORRECT PAGE
-</div>
       <div className="p-4 lg:p-6">
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
