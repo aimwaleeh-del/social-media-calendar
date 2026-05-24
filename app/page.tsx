@@ -443,25 +443,25 @@ export default function Home() {
     return "ecea";
   }
 
-  function programAccent(program: string | null) {
-    const key = programKey(program);
+function programAccent(program: string | null) {
+  const key = programKey(program);
 
-    if (key === "biz") return "bg-gradient-to-b from-[#1a3a8a] to-[#2d5be3]";
-    if (key === "ai") return "bg-gradient-to-b from-[#6c3fc5] to-[#9b59b6]";
-    if (key === "fr") return "bg-gradient-to-b from-[#1a7a45] to-[#27ae60]";
-    if (key === "cira") return "bg-gradient-to-b from-[#1a3a8a] to-[#0d2560]";
-    return "bg-gradient-to-b from-[#e8453c] via-[#f4724a] to-[#f9956b]";
-  }
+  if (key === "biz") return "bg-gradient-to-b from-[#1e4caf] to-[#1e4caf]";
+  if (key === "ai") return "bg-gradient-to-b from-[#f0870f] to-[#f0870f]";
+  if (key === "fr") return "bg-gradient-to-b from-[#d24b66] to-[#d24b66]";
+  if (key === "cira") return "bg-gradient-to-b from-[#024da8] to-[#024da8]";
+  return "bg-gradient-to-b from-[#f1ca33] to-[#f1ca33]";
+}
 
-  function programPill(program: string | null) {
-    const key = programKey(program);
+function programPill(program: string | null) {
+  const key = programKey(program);
 
-    if (key === "biz") return "bg-[#1a3a8a]/10 text-[#1a3a8a]";
-    if (key === "ai") return "bg-[#6c3fc5]/10 text-[#6c3fc5]";
-    if (key === "fr") return "bg-[#1a7a45]/10 text-[#1a7a45]";
-    if (key === "cira") return "bg-[#0d2560]/10 text-[#0d2560]";
-    return "bg-[#e8453c]/10 text-[#e8453c]";
-  }
+  if (key === "biz") return "bg-[#1e4caf]/10 text-[#1e4caf]";
+  if (key === "ai") return "bg-[#f0870f]/10 text-[#f0870f]";
+  if (key === "fr") return "bg-[#d24b66]/10 text-[#d24b66]";
+  if (key === "cira") return "bg-[#024da8]/10 text-[#024da8]";
+  return "bg-[#f1ca33]/20 text-[#8a6000]";
+}
 
   function statusTag(status: string) {
     if (status === "Published") return "bg-[#25d366]/10 text-[#128C7E]";
