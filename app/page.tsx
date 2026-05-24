@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
@@ -190,9 +190,7 @@ export default function Home() {
       return;
     }
 
-    const { data } = supabase.storage
-      .from("post-images")
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("post-images").getPublicUrl(filePath);
 
     setPost({
       ...currentPost,
@@ -206,10 +204,7 @@ export default function Home() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("posts")
-      .insert([newPost])
-      .select();
+    const { data, error } = await supabase.from("posts").insert([newPost]).select();
 
     if (error) {
       alert(
@@ -313,15 +308,19 @@ export default function Home() {
     month: "long",
     year: "numeric",
   });
-  const previousMonthTitle = new Date(year, month - 1, 1).toLocaleString("default", {
-  month: "long",
-  year: "numeric",
-});
 
-const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
-  month: "long",
-  year: "numeric",
-});
+  const previousMonthTitle = new Date(year, month - 1, 1).toLocaleString(
+    "default",
+    {
+      month: "long",
+      year: "numeric",
+    }
+  );
+
+  const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
 
   const calendarDays = useMemo(() => {
     const firstDay = new Date(year, month, 1);
@@ -574,6 +573,7 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
 
           <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={logout}
               className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur hover:bg-white/20"
             >
@@ -581,6 +581,7 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
             </button>
 
             <button
+              type="button"
               onClick={() => setShowForm(true)}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-lg"
             >
@@ -603,6 +604,7 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
       <div className="p-4 lg:p-6">
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
+            type="button"
             onClick={() => setActiveView("calendar")}
             className={`rounded-xl px-4 py-2 text-xs font-black ${
               activeView === "calendar"
@@ -614,6 +616,7 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveView("ig-grid")}
             className={`rounded-xl px-4 py-2 text-xs font-black ${
               activeView === "ig-grid"
@@ -633,53 +636,92 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
               reschedule it.
             </div>
 
-            <section className="mt-4 <section className="relative z-20 mt-4 rounded-2xl bg-white p-4 shadow-sm">
-  <div className="flex items-center justify-between gap-4">
-    <button
-      type="button"
-      onClick={previousMonth}
-      className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
-    >
-      ← Previous
-    </button>
+            <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+                Platform
+              </p>
 
-    <div className="relative z-30 flex flex-1 items-center justify-center gap-3">
-      <button
-        type="button"
-        onClick={previousMonth}
-        className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
-      >
-        {previousMonthTitle}
-      </button>
+              <div className="flex flex-wrap gap-2">
+                {platforms.map((platform) => (
+                  <button
+                    type="button"
+                    key={platform}
+                    onClick={() => setSelectedPlatform(platform)}
+                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${platformButton(
+                      platform,
+                      selectedPlatform === platform
+                    )}`}
+                  >
+                    {platform}
+                  </button>
+                ))}
+              </div>
 
-      <button
-        type="button"
-        onClick={() => {
-          setCurrentDate(new Date(year, month, 1));
-        }}
-        className="cursor-default rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-sm"
-      >
-        {monthTitle}
-      </button>
+              <p className="mb-3 mt-5 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+                Status
+              </p>
 
-      <button
-        type="button"
-        onClick={nextMonth}
-        className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
-      >
-        {nextMonthTitle}
-      </button>
-    </div>
+              <div className="flex flex-wrap gap-2">
+                {statuses.map((status) => (
+                  <button
+                    type="button"
+                    key={status}
+                    onClick={() => setSelectedStatus(status)}
+                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${statusButton(
+                      status,
+                      selectedStatus === status
+                    )}`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </section>
 
-    <button
-      type="button"
-      onClick={nextMonth}
-      className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
-    >
-      Next →
-    </button>
-  </div>
-</section>
+            <section className="relative z-20 mt-4 rounded-2xl bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <button
+                  type="button"
+                  onClick={previousMonth}
+                  className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+                >
+                  ← Previous
+                </button>
+
+                <div className="relative z-30 flex flex-1 flex-wrap items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={previousMonth}
+                    className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+                  >
+                    {previousMonthTitle}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="cursor-default rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-2 text-sm font-black text-white shadow-sm"
+                  >
+                    {monthTitle}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={nextMonth}
+                    className="cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-sm font-bold text-[#7f8898] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+                  >
+                    {nextMonthTitle}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={nextMonth}
+                  className="relative z-30 cursor-pointer rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560] transition hover:bg-[#fff8f5] hover:text-[#e8453c]"
+                >
+                  Next →
+                </button>
+              </div>
+            </section>
 
             {loading && (
               <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold text-[#777] shadow-sm">
@@ -739,6 +781,7 @@ const nextMonthTitle = new Date(year, month + 1, 1).toLocaleString("default", {
                       <div className="space-y-2">
                         {postsForDay(day).map((post) => (
                           <button
+                            type="button"
                             key={post.id}
                             draggable
                             onDragStart={() => setDraggedPostId(post.id)}
@@ -911,6 +954,7 @@ function IGGridPreview({
       <div className="grid max-w-[900px] grid-cols-3 gap-1 bg-white">
         {instagramPosts.map((post) => (
           <button
+            type="button"
             key={post.id}
             onClick={() => setSelectedPost(post)}
             className="group relative aspect-[4/5] overflow-hidden bg-[#d8d8d8] text-left"
@@ -927,7 +971,7 @@ function IGGridPreview({
                   <p className="text-[9px] font-black uppercase tracking-wide text-white/70">
                     {post.program || "CIRA"}
                   </p>
-                  <h3 className="mt-2 line-clamp-4 text-sm font-black leading-tight">
+                  <h3 className="mt-2 text-sm font-black leading-tight">
                     {post.title}
                   </h3>
                 </div>
@@ -1133,6 +1177,7 @@ function PostDetailsModal({
 
             <div className="mt-6 flex justify-between gap-3">
               <button
+                type="button"
                 onClick={onDelete}
                 className="rounded-2xl bg-red-500 px-4 py-2 text-sm font-black text-white"
               >
@@ -1141,6 +1186,7 @@ function PostDetailsModal({
 
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={onClose}
                   className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
                 >
@@ -1148,6 +1194,7 @@ function PostDetailsModal({
                 </button>
 
                 <button
+                  type="button"
                   onClick={onEdit}
                   className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
                 >
@@ -1208,7 +1255,7 @@ function PostFormModal({
 }) {
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (!file) return;
@@ -1411,6 +1458,7 @@ function PostFormModal({
 
           <div className="flex justify-end gap-3 pt-2">
             <button
+              type="button"
               onClick={onCancel}
               className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
             >
@@ -1418,6 +1466,7 @@ function PostFormModal({
             </button>
 
             <button
+              type="button"
               onClick={onSave}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-sm font-black text-white"
             >
