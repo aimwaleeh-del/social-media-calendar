@@ -159,10 +159,10 @@ export default function Home() {
   }
 
   async function uploadPostImage(
-  file: File,
-  currentPost: FormPost | Post,
-  setPost: (post: any) => void
-) {
+    file: File,
+    currentPost: FormPost | Post,
+    setPost: (post: any) => void
+  ) {
     if (!file) return;
 
     const fileExt = file.name.split(".").pop();
@@ -473,9 +473,13 @@ export default function Home() {
       return "bg-white text-[#777] border border-[#e8eaf2] hover:text-[#0d2560]";
     }
 
-    if (status === "Published") return "bg-[#128C7E] text-white border-transparent";
-    if (status === "Scheduled") return "bg-[#0d2560] text-white border-transparent";
-    if (status === "Draft") return "bg-[#f5c842] text-[#2a2a3d] border-transparent";
+    if (status === "Published")
+      return "bg-[#128C7E] text-white border-transparent";
+    if (status === "Scheduled")
+      return "bg-[#0d2560] text-white border-transparent";
+    if (status === "Draft")
+      return "bg-[#f5c842] text-[#2a2a3d] border-transparent";
+
     return "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white border-transparent";
   }
 
@@ -547,7 +551,9 @@ export default function Home() {
               <br />
               <em className="not-italic text-[#f9956b]">{monthTitle}</em>
             </h1>
-            <p className="mt-2 text-xs text-white/50">Logged in as {user.email}</p>
+            <p className="mt-2 text-xs text-white/50">
+              Logged in as {user.email}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -577,6 +583,7 @@ export default function Home() {
           <Legend color="#0d2560" label="CIRA Brand" />
         </div>
       </section>
+
       <div className="p-4 lg:p-6">
         <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
           <button
@@ -605,7 +612,9 @@ export default function Home() {
         {activeView === "calendar" && (
           <>
             <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
-              <span className="font-black text-[#e8453c]">Tip:</span> Click a date or the + button to add a post. Drag a post card to reschedule it.
+              <span className="font-black text-[#e8453c]">Tip:</span> Click a
+              date or the + button to add a post. Drag a post card to
+              reschedule it.
             </div>
 
             <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
@@ -734,11 +743,17 @@ export default function Home() {
                               if (!draggedPostId) setSelectedPost(post);
                             }}
                             className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                              draggedPostId === post.id ? "opacity-50" : "opacity-100"
+                              draggedPostId === post.id
+                                ? "opacity-50"
+                                : "opacity-100"
                             }`}
                           >
                             <div className="flex">
-                              <div className={`w-1.5 shrink-0 ${programAccent(post.program)}`} />
+                              <div
+                                className={`w-1.5 shrink-0 ${programAccent(
+                                  post.program
+                                )}`}
+                              />
 
                               <div className="min-w-0 flex-1 p-3">
                                 <div className="mb-2 flex flex-wrap items-center gap-1.5">
@@ -914,10 +929,18 @@ function IGGridPreview({
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                  <span className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(post.post_type)}`}>
+                  <span
+                    className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
+                      post.post_type
+                    )}`}
+                  >
                     {post.post_type || "Static"}
                   </span>
-                  <span className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(post.post_goal)}`}>
+                  <span
+                    className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
+                      post.post_goal
+                    )}`}
+                  >
                     {post.post_goal || "Engage"}
                   </span>
                 </div>
@@ -933,10 +956,7 @@ function IGGridPreview({
         ))}
 
         {Array.from({ length: emptySlots }).map((_, index) => (
-          <div
-            key={`empty-${index}`}
-            className="aspect-square bg-[#d8d8d8]"
-          />
+          <div key={`empty-${index}`} className="aspect-square bg-[#d8d8d8]" />
         ))}
       </div>
     </section>
@@ -980,22 +1000,49 @@ function PostDetailsModal({
           <div className={`w-2 shrink-0 ${programAccent(post.program)}`} />
 
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="mb-4 flex flex-wrap gap-2">
-              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${programPill(post.program)}`}>
-                {post.program || "Program"}
-              </span>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] font-black ${programPill(
+                    post.program
+                  )}`}
+                >
+                  {post.program || "Program"}
+                </span>
 
-              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${statusTag(post.status)}`}>
-                {post.status}
-              </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] font-black ${statusTag(
+                    post.status
+                  )}`}
+                >
+                  {post.status}
+                </span>
 
-              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${typeTag(post.post_type)}`}>
-                {post.post_type || "Static"}
-              </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] font-black ${typeTag(
+                    post.post_type
+                  )}`}
+                >
+                  {post.post_type || "Static"}
+                </span>
 
-              <span className={`rounded-full px-3 py-1 text-[10px] font-black ${goalTag(post.post_goal)}`}>
-                {post.post_goal || "Engage"}
-              </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] font-black ${goalTag(
+                    post.post_goal
+                  )}`}
+                >
+                  {post.post_goal || "Engage"}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f6fb] text-xl font-black text-[#0d2560] hover:bg-[#e8453c] hover:text-white"
+                title="Close"
+              >
+                ×
+              </button>
             </div>
 
             {post.image_url && (
@@ -1016,7 +1063,10 @@ function PostDetailsModal({
               <InfoRow label="Post Type" value={post.post_type || "Static"} />
               <InfoRow label="Post Goal" value={post.post_goal || "Engage"} />
               <InfoRow label="Assignee" value={post.assignee || "None"} />
-              <TextBox label="Caption" value={post.caption || "No caption added."} />
+              <TextBox
+                label="Caption"
+                value={post.caption || "No caption added."}
+              />
               <TextBox
                 label="Design Notes"
                 value={post.design_notes || "No design notes added."}
@@ -1133,9 +1183,19 @@ function PostFormModal({
       <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
         <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
           <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
-          <h2 className="cira-heading relative z-10 text-2xl font-black">
-            {title}
-          </h2>
+
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <h2 className="cira-heading text-2xl font-black">{title}</h2>
+
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-xl font-black text-white hover:bg-white/25"
+              title="Close"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4 p-6">
@@ -1235,12 +1295,40 @@ function PostFormModal({
               </p>
             )}
 
-            {post.image_url && (
-              <img
-                src={post.image_url}
-                alt="Post preview"
-                className="mt-3 aspect-square w-full rounded-2xl object-cover"
-              />
+            {post.image_url ? (
+              <div className="mt-3">
+                <img
+                  src={post.image_url}
+                  alt="Post preview"
+                  className="aspect-square w-full rounded-2xl border border-[#e8eaf2] object-cover"
+                  onError={() => {
+                    alert(
+                      "Image uploaded, but the image URL cannot be displayed. Check that the Supabase bucket is public."
+                    );
+                  }}
+                />
+
+                <a
+                  href={post.image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 block text-xs font-black text-[#e8453c] underline"
+                >
+                  Open uploaded image
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setPost({ ...post, image_url: "" })}
+                  className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600"
+                >
+                  Remove image
+                </button>
+              </div>
+            ) : (
+              <div className="mt-3 flex aspect-square w-full items-center justify-center rounded-2xl bg-[#d8d8d8] text-sm font-bold text-[#777]">
+                No image uploaded yet
+              </div>
             )}
           </div>
 
@@ -1272,7 +1360,7 @@ function PostFormModal({
               onClick={onCancel}
               className="rounded-2xl bg-[#f4f6fb] px-4 py-2 text-sm font-black text-[#0d2560]"
             >
-              Cancel
+              Close
             </button>
 
             <button
