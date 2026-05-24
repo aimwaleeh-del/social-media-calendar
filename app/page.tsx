@@ -887,19 +887,18 @@ export default function Home() {
         />
       )}
 
-      {selectedPost && !editingPost && (
-        <PostDetailsModal
-          post={selectedPost}
-          programAccent={programAccent}
-          programPill={programPill}
-          statusTag={statusTag}
-          typeTag={typeTag}
-          goalTag={goalTag}
-          onClose={() => setSelectedPost(null)}
-          onEdit={() => setEditingPost(selectedPost)}
-          onDelete={() => deletePost(selectedPost.id)}
-          onMoveToIdeas={() => movePostToIdeaLibrary(selectedPost)}
-        />
+<PostDetailsModal
+  post={selectedPost}
+  programAccent={programAccent}
+  programPill={programPill}
+  statusTag={statusTag}
+  typeTag={typeTag}
+  goalTag={goalTag}
+  onClose={() => setSelectedPost(null)}
+  onEdit={() => setEditingPost(selectedPost)}
+  onDelete={() => deletePost(selectedPost.id)}
+  onMoveToIdeas={() => movePostToIdeaLibrary(selectedPost)}
+/>
       )}
 
       {editingPost && (
