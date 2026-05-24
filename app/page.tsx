@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
-
+import ThreeMonthPlan from "./components/ThreeMonthPlan";
 type Status = "Draft" | "Scheduled" | "Published";
 type ViewMode = "planning" | "calendar" | "ig-grid";
 
@@ -566,13 +566,7 @@ export default function Home() {
               Content Calendar
               <br />
               <em className="not-italic text-[#f9956b]">
-                {activeView === "planning" ? "3-Month Plan" : monthTitle}
-              </em>
-            </h1>
-            <p className="mt-2 text-xs text-white/50">
-              Logged in as {user.email}
-            </p>
-          </div>
+{activeView === "planning" && <ThreeMonthPlan />}
 
           <div className="flex flex-wrap gap-3">
             <button
@@ -643,15 +637,7 @@ export default function Home() {
           </button>
         </div>
 
-        {activeView === "planning" && (
-          <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            <iframe
-              src="/cira-calendar-final.html"
-              className="h-[900px] w-full border-0"
-              title="CIRA 3-Month Content Calendar"
-            />
-          </section>
-        )}
+  {activeView === "planning" && <ThreeMonthPlan />}
 
         {activeView === "calendar" && (
           <>
