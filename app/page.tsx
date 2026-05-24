@@ -5,6 +5,7 @@ import { supabase } from "./lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 type Status = "Draft" | "Scheduled" | "Published";
+type ViewMode = "calendar" | "ig-grid";
 
 type Post = {
   id: string;
@@ -19,6 +20,7 @@ type Post = {
   media_url: string | null;
   post_type: string | null;
   post_goal: string | null;
+  image_url: string | null;
 };
 
 type FormPost = {
@@ -33,6 +35,7 @@ type FormPost = {
   media_url: string | null;
   post_type: string | null;
   post_goal: string | null;
+  image_url: string | null;
 };
 
 export default function Home() {
@@ -45,6 +48,8 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
   const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
+  const [activeView, setActiveView] = useState<ViewMode>("calendar");
+
   const [showForm, setShowForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -63,6 +68,7 @@ export default function Home() {
     media_url: "",
     post_type: "Static",
     post_goal: "Engage",
+    image_url: "",
   });
 
   const platforms = [
@@ -152,6 +158,41 @@ export default function Home() {
     setLoading(false);
   }
 
+  async function uploadPostImage(
+    file: File,
+    currentPost: FormPost,
+    setPost: (post: FormPost) => void
+  ) {
+    if (!file) return;
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
+    const filePath = `posts/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("post-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      alert("Could not upload image:\n\n" + uploadError.message);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("post-images")
+      .getPublicUrl(filePath);
+
+    setPost({
+      ...currentPost,
+      image_url: data.publicUrl,
+    });
+  }
+
   async function addPost() {
     if (!newPost.title.trim()) {
       alert("Please add a post title.");
@@ -189,6 +230,7 @@ export default function Home() {
       media_url: "",
       post_type: "Static",
       post_goal: "Engage",
+      image_url: "",
     });
   }
 
@@ -212,6 +254,7 @@ export default function Home() {
       media_url: editingPost.media_url,
       post_type: editingPost.post_type,
       post_goal: editingPost.post_goal,
+      image_url: editingPost.image_url,
     };
 
     const { data, error } = await supabase
@@ -304,6 +347,7 @@ export default function Home() {
       media_url: "",
       post_type: "Static",
       post_goal: "Engage",
+      image_url: "",
     });
 
     setShowForm(true);
@@ -535,196 +579,233 @@ export default function Home() {
       </section>
 
       <div className="p-4 lg:p-6">
-        <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
-          <span className="font-black text-[#e8453c]">Tip:</span> Click a date or the + button to add a post. Drag a post card to reschedule it.
+        <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm">
+          <button
+            onClick={() => setActiveView("calendar")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "calendar"
+                ? "bg-[#0d2560] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            Calendar
+          </button>
+
+          <button
+            onClick={() => setActiveView("ig-grid")}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${
+              activeView === "ig-grid"
+                ? "bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] text-white"
+                : "bg-[#f4f6fb] text-[#0d2560]"
+            }`}
+          >
+            IG Grid Preview
+          </button>
         </div>
 
-        <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
-            Platform
-          </p>
+        {activeView === "calendar" && (
+          <>
+            <div className="rounded-2xl bg-white p-4 text-sm text-[#777] shadow-sm">
+              <span className="font-black text-[#e8453c]">Tip:</span> Click a date or the + button to add a post. Drag a post card to reschedule it.
+            </div>
 
-          <div className="flex flex-wrap gap-2">
-            {platforms.map((platform) => (
+            <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+                Platform
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {platforms.map((platform) => (
+                  <button
+                    key={platform}
+                    onClick={() => setSelectedPlatform(platform)}
+                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${platformButton(
+                      platform,
+                      selectedPlatform === platform
+                    )}`}
+                  >
+                    {platform}
+                  </button>
+                ))}
+              </div>
+
+              <p className="mb-3 mt-5 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
+                Status
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {statuses.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setSelectedStatus(status)}
+                    className={`rounded-2xl px-4 py-2 text-xs font-black transition ${statusButton(
+                      status,
+                      selectedStatus === status
+                    )}`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="mt-4 flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
               <button
-                key={platform}
-                onClick={() => setSelectedPlatform(platform)}
-                className={`rounded-2xl px-4 py-2 text-xs font-black transition ${platformButton(
-                  platform,
-                  selectedPlatform === platform
-                )}`}
+                onClick={previousMonth}
+                className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
               >
-                {platform}
+                ← Previous
               </button>
-            ))}
-          </div>
 
-          <p className="mb-3 mt-5 text-[10px] font-black uppercase tracking-[0.12em] text-[#777]">
-            Status
-          </p>
+              <h2 className="cira-heading text-xl font-black text-[#0d2560]">
+                {monthTitle}
+              </h2>
 
-          <div className="flex flex-wrap gap-2">
-            {statuses.map((status) => (
               <button
-                key={status}
-                onClick={() => setSelectedStatus(status)}
-                className={`rounded-2xl px-4 py-2 text-xs font-black transition ${statusButton(
-                  status,
-                  selectedStatus === status
-                )}`}
+                onClick={nextMonth}
+                className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
               >
-                {status}
+                Next →
               </button>
-            ))}
-          </div>
-        </section>
+            </section>
 
-        <section className="mt-4 flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
-          <button
-            onClick={previousMonth}
-            className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
-          >
-            ← Previous
-          </button>
+            {loading && (
+              <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold text-[#777] shadow-sm">
+                Loading posts from Supabase...
+              </p>
+            )}
 
-          <h2 className="cira-heading text-xl font-black text-[#0d2560]">
-            {monthTitle}
-          </h2>
+            <div className="mt-5 grid grid-cols-7 gap-2 text-center">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div
+                  key={day}
+                  className="rounded-xl bg-white py-2 text-[10px] font-black uppercase tracking-wide text-[#777] shadow-sm"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
 
-          <button
-            onClick={nextMonth}
-            className="rounded-xl bg-[#f4f6fb] px-4 py-2 text-xs font-black text-[#0d2560]"
-          >
-            Next →
-          </button>
-        </section>
+            <div className="mt-2 grid grid-cols-7 gap-2">
+              {calendarDays.map((day, index) => (
+                <div
+                  key={index}
+                  onDragOver={(event) => {
+                    if (day) event.preventDefault();
+                  }}
+                  onDrop={() => {
+                    if (day) handleDrop(day);
+                  }}
+                  className={`min-h-44 rounded-2xl border p-2 shadow-sm transition ${
+                    day && draggedPostId
+                      ? "border-[#e8453c] bg-[#fff8f5]"
+                      : "border-[#e8eaf2] bg-white"
+                  }`}
+                >
+                  {day && (
+                    <>
+                      <div className="mb-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => openNewPostForDay(day)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560] transition hover:bg-[#e8453c] hover:text-white"
+                          title="Add post on this date"
+                        >
+                          {day}
+                        </button>
 
-        {loading && (
-          <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold text-[#777] shadow-sm">
-            Loading posts from Supabase...
-          </p>
+                        <button
+                          type="button"
+                          onClick={() => openNewPostForDay(day)}
+                          className="rounded-lg bg-[#fff8f5] px-2 py-1 text-[9px] font-black text-[#e8453c] transition hover:bg-[#e8453c] hover:text-white"
+                          title="Add post on this date"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {postsForDay(day).map((post) => (
+                          <button
+                            key={post.id}
+                            draggable
+                            onDragStart={() => setDraggedPostId(post.id)}
+                            onDragEnd={() => setDraggedPostId(null)}
+                            onClick={() => {
+                              if (!draggedPostId) setSelectedPost(post);
+                            }}
+                            className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                              draggedPostId === post.id ? "opacity-50" : "opacity-100"
+                            }`}
+                          >
+                            <div className="flex">
+                              <div className={`w-1.5 shrink-0 ${programAccent(post.program)}`} />
+
+                              <div className="min-w-0 flex-1 p-3">
+                                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                                  <span
+                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
+                                      post.program
+                                    )}`}
+                                  >
+                                    {post.program || "Program"}
+                                  </span>
+
+                                  <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+                                    {post.platform}
+                                  </span>
+                                </div>
+
+                                <div className="truncate text-xs font-black leading-snug text-[#0d2560]">
+                                  {post.title}
+                                </div>
+
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  <span
+                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
+                                      post.status
+                                    )}`}
+                                  >
+                                    {post.status}
+                                  </span>
+
+                                  <span
+                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
+                                      post.post_type
+                                    )}`}
+                                  >
+                                    {post.post_type || "Static"}
+                                  </span>
+
+                                  <span
+                                    className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
+                                      post.post_goal
+                                    )}`}
+                                  >
+                                    {post.post_goal || "Engage"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
-        <div className="mt-5 grid grid-cols-7 gap-2 text-center">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div
-              key={day}
-              className="rounded-xl bg-white py-2 text-[10px] font-black uppercase tracking-wide text-[#777] shadow-sm"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-2 grid grid-cols-7 gap-2">
-          {calendarDays.map((day, index) => (
-            <div
-              key={index}
-              onDragOver={(event) => {
-                if (day) event.preventDefault();
-              }}
-              onDrop={() => {
-                if (day) handleDrop(day);
-              }}
-              className={`min-h-44 rounded-2xl border p-2 shadow-sm transition ${
-                day && draggedPostId
-                  ? "border-[#e8453c] bg-[#fff8f5]"
-                  : "border-[#e8eaf2] bg-white"
-              }`}
-            >
-              {day && (
-                <>
-                  <div className="mb-2 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => openNewPostForDay(day)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f6fb] text-xs font-black text-[#0d2560] transition hover:bg-[#e8453c] hover:text-white"
-                      title="Add post on this date"
-                    >
-                      {day}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => openNewPostForDay(day)}
-                      className="rounded-lg bg-[#fff8f5] px-2 py-1 text-[9px] font-black text-[#e8453c] transition hover:bg-[#e8453c] hover:text-white"
-                      title="Add post on this date"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {postsForDay(day).map((post) => (
-                      <button
-                        key={post.id}
-                        draggable
-                        onDragStart={() => setDraggedPostId(post.id)}
-                        onDragEnd={() => setDraggedPostId(null)}
-                        onClick={() => {
-                          if (!draggedPostId) setSelectedPost(post);
-                        }}
-                        className={`w-full cursor-move overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                          draggedPostId === post.id ? "opacity-50" : "opacity-100"
-                        }`}
-                      >
-                        <div className="flex">
-                          <div className={`w-1.5 shrink-0 ${programAccent(post.program)}`} />
-
-                          <div className="min-w-0 flex-1 p-3">
-                            <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                              <span
-                                className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
-                                  post.program
-                                )}`}
-                              >
-                                {post.program || "Program"}
-                              </span>
-
-                              <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
-                                {post.platform}
-                              </span>
-                            </div>
-
-                            <div className="truncate text-xs font-black leading-snug text-[#0d2560]">
-                              {post.title}
-                            </div>
-
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              <span
-                                className={`rounded-full px-2 py-1 text-[9px] font-black ${statusTag(
-                                  post.status
-                                )}`}
-                              >
-                                {post.status}
-                              </span>
-
-                              <span
-                                className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(
-                                  post.post_type
-                                )}`}
-                              >
-                                {post.post_type || "Static"}
-                              </span>
-
-                              <span
-                                className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(
-                                  post.post_goal
-                                )}`}
-                              >
-                                {post.post_goal || "Engage"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+        {activeView === "ig-grid" && (
+          <IGGridPreview
+            posts={posts}
+            setSelectedPost={setSelectedPost}
+            typeTag={typeTag}
+            goalTag={goalTag}
+          />
+        )}
       </div>
 
       {showForm && (
@@ -737,6 +818,7 @@ export default function Home() {
           setPost={setNewPost}
           onCancel={() => setShowForm(false)}
           onSave={addPost}
+          onUploadImage={uploadPostImage}
         />
       )}
 
@@ -764,9 +846,101 @@ export default function Home() {
           setPost={setEditingPost}
           onCancel={() => setEditingPost(null)}
           onSave={saveChanges}
+          onUploadImage={uploadPostImage}
         />
       )}
     </main>
+  );
+}
+
+function IGGridPreview({
+  posts,
+  setSelectedPost,
+  typeTag,
+  goalTag,
+}: {
+  posts: Post[];
+  setSelectedPost: (post: Post) => void;
+  typeTag: (type: string | null) => string;
+  goalTag: (goal: string | null) => string;
+}) {
+  const instagramPosts = posts
+    .filter((post) => post.platform === "Instagram")
+    .sort((a, b) => b.post_date.localeCompare(a.post_date));
+
+  const emptySlots = Math.max(0, 9 - instagramPosts.length);
+
+  return (
+    <section className="rounded-2xl bg-white p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
+            Gallery
+          </p>
+          <h2 className="cira-heading text-2xl font-black text-[#0d2560]">
+            IG Grid Preview
+          </h2>
+          <p className="text-xs font-bold text-[#777]">
+            Upload images inside each post to preview your Instagram grid.
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-4 py-2 text-xs font-black text-white">
+          1_ Update the gallery
+        </div>
+      </div>
+
+      <div className="grid max-w-[900px] grid-cols-3 gap-1 bg-white">
+        {instagramPosts.map((post) => (
+          <button
+            key={post.id}
+            onClick={() => setSelectedPost(post)}
+            className="group relative aspect-square overflow-hidden bg-[#d8d8d8] text-left"
+          >
+            {post.image_url ? (
+              <img
+                src={post.image_url}
+                alt={post.title}
+                className="h-full w-full object-cover transition group-hover:scale-105"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col justify-between bg-gradient-to-br from-[#0d2560] via-[#1a3a8a] to-[#e8453c] p-4 text-white">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-wide text-white/70">
+                    {post.program || "CIRA"}
+                  </p>
+                  <h3 className="mt-2 line-clamp-4 text-sm font-black leading-tight">
+                    {post.title}
+                  </h3>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  <span className={`rounded-full px-2 py-1 text-[9px] font-black ${typeTag(post.post_type)}`}>
+                    {post.post_type || "Static"}
+                  </span>
+                  <span className={`rounded-full px-2 py-1 text-[9px] font-black ${goalTag(post.post_goal)}`}>
+                    {post.post_goal || "Engage"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition group-hover:opacity-100">
+              <p className="truncate text-[10px] font-bold text-white">
+                {post.title}
+              </p>
+            </div>
+          </button>
+        ))}
+
+        {Array.from({ length: emptySlots }).map((_, index) => (
+          <div
+            key={`empty-${index}`}
+            className="aspect-square bg-[#d8d8d8]"
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -806,7 +980,7 @@ function PostDetailsModal({
         <div className="flex">
           <div className={`w-2 shrink-0 ${programAccent(post.program)}`} />
 
-          <div className="flex-1 p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             <div className="mb-4 flex flex-wrap gap-2">
               <span className={`rounded-full px-3 py-1 text-[10px] font-black ${programPill(post.program)}`}>
                 {post.program || "Program"}
@@ -824,6 +998,14 @@ function PostDetailsModal({
                 {post.post_goal || "Engage"}
               </span>
             </div>
+
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt={post.title}
+                className="mb-4 aspect-square w-full rounded-2xl object-cover"
+              />
+            )}
 
             <h2 className="cira-heading text-2xl font-black leading-tight text-[#0d2560]">
               {post.title}
@@ -919,16 +1101,34 @@ function PostFormModal({
   setPost,
   onCancel,
   onSave,
+  onUploadImage,
 }: {
   title: string;
   programs: string[];
   postTypes: string[];
   postGoals: string[];
   post: FormPost;
-  setPost: (post: any) => void;
+  setPost: (post: FormPost) => void;
   onCancel: () => void;
   onSave: () => void;
+  onUploadImage: (
+    file: File,
+    currentPost: FormPost,
+    setPost: (post: FormPost) => void
+  ) => Promise<void>;
 }) {
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setUploadingImage(true);
+    await onUploadImage(file, post, setPost);
+    setUploadingImage(false);
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
       <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
@@ -1017,6 +1217,33 @@ function PostFormModal({
             className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
             placeholder="Assignee"
           />
+
+          <div className="rounded-2xl border border-dashed border-[#e8453c]/40 bg-[#fff8f5] p-4">
+            <p className="mb-2 text-xs font-black uppercase tracking-wide text-[#e8453c]">
+              Upload Photo for IG Grid
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full text-sm font-semibold text-[#777]"
+            />
+
+            {uploadingImage && (
+              <p className="mt-2 text-xs font-bold text-[#777]">
+                Uploading image...
+              </p>
+            )}
+
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt="Post preview"
+                className="mt-3 aspect-square w-full rounded-2xl object-cover"
+              />
+            )}
+          </div>
 
           <textarea
             value={post.caption || ""}
