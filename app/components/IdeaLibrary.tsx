@@ -3,7 +3,7 @@
 import { useEffect, useState, type ChangeEvent, type DragEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-type IdeaCategory = "Ideas" | "Mood Board";
+type MainCategory = "Ideas" | "Mood Board";
 
 type ContentIdea = {
   id: string;
@@ -41,7 +41,7 @@ type IdeaLibraryProps = {
 
 type IdeaForm = {
   title: string;
-  category: IdeaCategory;
+  category: MainCategory;
   content_type: string;
   idea_category: string;
   description: string;
@@ -51,14 +51,14 @@ type IdeaForm = {
   image_url: string;
 };
 
-const categories: IdeaCategory[] = ["Ideas", "Mood Board"];
+const mainCategories: MainCategory[] = ["Ideas", "Mood Board"];
 
 const ideaCategories = [
-  "Educational",
-  "Objection Handling",
-  "Social Proof",
-  "Enrollment CTA",
-  "Engagement",
+  { label: "Educational", icon: "📚" },
+  { label: "Objection", icon: "♡" },
+  { label: "Social Proof", icon: "⭐" },
+  { label: "CTA", icon: "📣" },
+  { label: "Engagement", icon: "💬" },
 ];
 
 const blankIdea: IdeaForm = {
@@ -74,7 +74,10 @@ const blankIdea: IdeaForm = {
 };
 
 export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
-  const [activeCategory, setActiveCategory] = useState<IdeaCategory>("Ideas");
+  const [activeMainCategory, setActiveMainCategory] =
+    useState<MainCategory>("Ideas");
+  const [activeIdeaCategory, setActiveIdeaCategory] = useState("Educational");
+
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingIdea, setEditingIdea] = useState<ContentIdea | null>(null);
@@ -82,6 +85,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [draggingOver, setDraggingOver] = useState(false);
+  const [draggedIdeaId, setDraggedIdeaId] = useState<string | null>(null);
 
   const [schedulingIdea, setSchedulingIdea] = useState<ContentIdea | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
@@ -108,11 +112,12 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
     setLoading(false);
   }
 
-  function openNewIdea(category: IdeaCategory = activeCategory) {
+  function openNewIdea(category: MainCategory = activeMainCategory) {
     setEditingIdea(null);
     setForm({
       ...blankIdea,
       category,
+      idea_category: activeIdeaCategory,
       content_type: category === "Mood Board" ? "Design" : "Carousel",
       program: category === "Mood Board" ? "CIRA Brand" : "ECEA",
     });
@@ -133,6 +138,27 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
       image_url: idea.image_url || "",
     });
     setShowForm(true);
+  }
+
+  async function moveIdeaToCategory(ideaId: string, newCategory: string) {
+    const { data, error } = await supabase
+      .from("content_ideas")
+      .update({ idea_category: newCategory })
+      .eq("id", ideaId)
+      .select();
+
+    if (error) {
+      alert("Could not move idea:\n\n" + error.message);
+      return;
+    }
+
+    if (data && data[0]) {
+      setIdeas((currentIdeas) =>
+        currentIdeas.map((idea) => (idea.id === data[0].id ? data[0] : idea))
+      );
+    }
+
+    setDraggedIdeaId(null);
   }
 
   async function uploadSingleImage(file: File) {
@@ -207,7 +233,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
             title: cleanTitle,
             category: "Mood Board",
             content_type: "Design",
-            idea_category: "Educational",
+            idea_category: activeIdeaCategory,
             description: "",
             notes: "",
             program: "CIRA Brand",
@@ -235,7 +261,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
     event.preventDefault();
     setDraggingOver(false);
 
-    if (activeCategory !== "Mood Board") return;
+    if (activeMainCategory !== "Mood Board") return;
 
     await uploadMoodBoardFiles(event.dataTransfer.files);
   }
@@ -347,7 +373,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
       media_url: "",
       post_type: postType,
       post_goal:
-        schedulingIdea.idea_category === "Enrollment CTA"
+        schedulingIdea.idea_category === "CTA"
           ? "Lead"
           : schedulingIdea.idea_category === "Engagement"
           ? "Engage"
@@ -387,7 +413,11 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
     alert("Item moved to Calendar.");
   }
 
-  const filteredIdeas = ideas.filter((idea) => idea.category === activeCategory);
+  const filteredIdeas = ideas.filter(
+    (idea) =>
+      idea.category === activeMainCategory &&
+      (idea.idea_category || "Educational") === activeIdeaCategory
+  );
 
   return (
     <section className="overflow-hidden rounded-[28px] bg-white shadow-sm">
@@ -407,19 +437,19 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
         </h2>
 
         <p className="relative z-10 mt-2 text-xs text-white/55">
-          Add content ideas, organize by strategy category, drag images into your
-          mood board, then move items to the calendar when ready.
+          Add ideas, organize them by strategy, and drag cards into different
+          categories.
         </p>
       </div>
 
       <div className="grid grid-cols-2 border-b-2 border-[#e8eaf2] bg-white">
-        {categories.map((category) => (
+        {mainCategories.map((category) => (
           <button
             key={category}
             type="button"
-            onClick={() => setActiveCategory(category)}
+            onClick={() => setActiveMainCategory(category)}
             className={`border-b-4 px-3 py-4 text-center text-xs font-black uppercase tracking-wide transition ${
-              activeCategory === category
+              activeMainCategory === category
                 ? "border-[#e8453c] text-[#0d2560]"
                 : "border-transparent text-[#aaa] hover:text-[#e8453c]"
             }`}
@@ -429,18 +459,43 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
         ))}
       </div>
 
+      <div className="flex flex-wrap gap-0 border-b border-[#e8eaf2] bg-white px-4">
+        {ideaCategories.map((category) => (
+          <button
+            key={category.label}
+            type="button"
+            onClick={() => setActiveIdeaCategory(category.label)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => {
+              if (draggedIdeaId) {
+                moveIdeaToCategory(draggedIdeaId, category.label);
+                setActiveIdeaCategory(category.label);
+              }
+            }}
+            className={`border-b-2 px-4 py-3 text-xs font-black transition ${
+              activeIdeaCategory === category.label
+                ? "border-[#e8453c] text-[#0d2560]"
+                : "border-transparent text-[#999] hover:text-[#e8453c]"
+            } ${draggedIdeaId ? "bg-[#fff8f5]" : "bg-white"}`}
+          >
+            <span className="mr-1">{category.icon}</span>
+            {category.label}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-[#e5e9f2] p-5">
         <div className="rounded-[28px] bg-white p-5 shadow-sm">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e8453c]">
-                {activeCategory}
+                {activeMainCategory} · {activeIdeaCategory}
               </p>
 
               <h3 className="cira-heading text-2xl font-black text-[#0d2560]">
-                {activeCategory === "Ideas"
-                  ? "Fresh Content Ideas"
-                  : "Design Mood Board"}
+                {activeMainCategory === "Ideas"
+                  ? `${activeIdeaCategory} Ideas`
+                  : `${activeIdeaCategory} Mood Board`}
               </h3>
 
               <p className="mt-1 text-xs font-bold text-[#777]">
@@ -451,14 +506,14 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
 
             <button
               type="button"
-              onClick={() => openNewIdea(activeCategory)}
+              onClick={() => openNewIdea(activeMainCategory)}
               className="rounded-2xl bg-gradient-to-r from-[#e8563c] via-[#f4724a] to-[#f98060] px-5 py-3 text-sm font-black text-white shadow-sm"
             >
-              {activeCategory === "Ideas" ? "+ Add Idea" : "+ Add Note"}
+              {activeMainCategory === "Ideas" ? "+ Add Idea" : "+ Add Note"}
             </button>
           </div>
 
-          {activeCategory === "Mood Board" && (
+          {activeMainCategory === "Mood Board" && (
             <div
               onDragOver={(event) => {
                 event.preventDefault();
@@ -477,7 +532,8 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
               </p>
 
               <p className="mt-2 text-sm font-bold text-[#777]">
-                You can drop one image or multiple images at once.
+                Images will be added to the active category:{" "}
+                <span className="text-[#e8453c]">{activeIdeaCategory}</span>
               </p>
 
               <label className="mt-4 inline-block cursor-pointer rounded-2xl bg-white px-5 py-3 text-sm font-black text-[#e8453c] shadow-sm hover:bg-[#fff8f5]">
@@ -506,185 +562,39 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
           ) : filteredIdeas.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#e8eaf2] bg-[#f4f6fb] p-10 text-center">
               <p className="text-base font-black text-[#0d2560]">
-                {activeCategory === "Ideas"
-                  ? "No ideas added yet."
-                  : "No mood board images added yet."}
+                No items in {activeIdeaCategory} yet.
               </p>
 
               <p className="mt-2 text-sm font-bold text-[#777]">
-                {activeCategory === "Ideas"
-                  ? "Click “+ Add Idea” to save your first content idea."
-                  : "Drag images here to start your mood board."}
+                Add a new item or drag an existing card into this category tab.
               </p>
             </div>
-          ) : activeCategory === "Mood Board" ? (
+          ) : activeMainCategory === "Mood Board" ? (
             <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
               {filteredIdeas.map((idea) => (
-                <div
+                <IdeaMoodCard
                   key={idea.id}
-                  className="mb-4 break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm"
-                >
-                  <button
-                    type="button"
-                    onClick={() => openEditIdea(idea)}
-                    className="block w-full text-left"
-                  >
-                    {idea.image_url ? (
-                      <img
-                        src={idea.image_url}
-                        alt={idea.title}
-                        className="w-full"
-                      />
-                    ) : (
-                      <div className="flex min-h-40 w-full items-center justify-center bg-[#d8d8d8] p-5 text-center text-sm font-bold text-[#777]">
-                        No image uploaded
-                      </div>
-                    )}
-
-                    <div className="p-4">
-                      <div className="mb-2 flex flex-wrap gap-2">
-                        <span
-                          className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
-                            idea.program
-                          )}`}
-                        >
-                          {idea.program || "Program"}
-                        </span>
-
-                        <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
-                          {idea.content_type || "Design"}
-                        </span>
-
-                        <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
-                          {idea.idea_category || "Educational"}
-                        </span>
-
-                        <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
-                          {idea.status || "Idea"}
-                        </span>
-                      </div>
-
-                      <h4 className="text-sm font-black leading-snug text-[#0d2560]">
-                        {idea.title}
-                      </h4>
-
-                      {idea.description && (
-                        <p className="mt-2 text-xs leading-relaxed text-[#777]">
-                          {idea.description}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-
-                  <div className="flex flex-wrap gap-2 px-4 pb-4">
-                    <button
-                      type="button"
-                      onClick={() => openEditIdea(idea)}
-                      className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => openSchedulePopup(idea)}
-                      className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
-                    >
-                      Move to Calendar
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteIdea(idea.id)}
-                      className="rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-500 hover:text-white"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                  idea={idea}
+                  draggedIdeaId={draggedIdeaId}
+                  setDraggedIdeaId={setDraggedIdeaId}
+                  openEditIdea={openEditIdea}
+                  openSchedulePopup={openSchedulePopup}
+                  deleteIdea={deleteIdea}
+                />
               ))}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {filteredIdeas.map((idea) => (
-                <div
+                <IdeaTextCard
                   key={idea.id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
-                >
-                  <div className="flex h-full">
-                    <div
-                      className={`w-2 shrink-0 bg-gradient-to-b ${programGradient(
-                        idea.program
-                      )}`}
-                    />
-
-                    <div className="flex flex-1 flex-col p-4">
-                      <div className="mb-2 flex flex-wrap gap-2">
-                        <span
-                          className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
-                            idea.program
-                          )}`}
-                        >
-                          {idea.program || "Program"}
-                        </span>
-
-                        <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
-                          {idea.content_type || "Idea"}
-                        </span>
-
-                        <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
-                          {idea.idea_category || "Educational"}
-                        </span>
-
-                        <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
-                          {idea.status || "Idea"}
-                        </span>
-                      </div>
-
-                      <h4 className="text-sm font-black leading-snug text-[#0d2560]">
-                        {idea.title}
-                      </h4>
-
-                      {idea.description && (
-                        <p className="mt-2 text-xs leading-relaxed text-[#777]">
-                          {idea.description}
-                        </p>
-                      )}
-
-                      {idea.notes && (
-                        <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-[#f4f6fb] p-3 text-xs leading-relaxed text-[#444]">
-                          {idea.notes}
-                        </p>
-                      )}
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEditIdea(idea)}
-                          className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => openSchedulePopup(idea)}
-                          className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
-                        >
-                          Move to Calendar
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => deleteIdea(idea.id)}
-                          className="rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-500 hover:text-white"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  idea={idea}
+                  draggedIdeaId={draggedIdeaId}
+                  setDraggedIdeaId={setDraggedIdeaId}
+                  openEditIdea={openEditIdea}
+                  openSchedulePopup={openSchedulePopup}
+                  deleteIdea={deleteIdea}
+                />
               ))}
             </div>
           )}
@@ -695,8 +605,6 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2560]/60 p-4">
           <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
             <div className="relative overflow-hidden bg-gradient-to-b from-[#1a3a8a] to-[#0d2560] p-6 text-white">
-              <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-gradient-to-r from-[#e8453c] to-[#f9956b] opacity-20" />
-
               <div className="relative z-10 flex items-center justify-between gap-4">
                 <h2 className="cira-heading text-2xl font-black">
                   {editingIdea ? "Edit Item" : "Add Item"}
@@ -731,7 +639,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                 onChange={(event) =>
                   setForm({
                     ...form,
-                    category: event.target.value as IdeaCategory,
+                    category: event.target.value as MainCategory,
                     content_type:
                       event.target.value === "Mood Board"
                         ? "Design"
@@ -740,8 +648,20 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                 }
                 className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
               >
-                {categories.map((category) => (
+                {mainCategories.map((category) => (
                   <option key={category}>{category}</option>
+                ))}
+              </select>
+
+              <select
+                value={form.idea_category}
+                onChange={(event) =>
+                  setForm({ ...form, idea_category: event.target.value })
+                }
+                className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
+              >
+                {ideaCategories.map((category) => (
+                  <option key={category.label}>{category.label}</option>
                 ))}
               </select>
 
@@ -759,18 +679,6 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                 <option>Design</option>
                 <option>Reference</option>
                 <option>Brand Inspiration</option>
-              </select>
-
-              <select
-                value={form.idea_category}
-                onChange={(event) =>
-                  setForm({ ...form, idea_category: event.target.value })
-                }
-                className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
-              >
-                {ideaCategories.map((category) => (
-                  <option key={category}>{category}</option>
-                ))}
               </select>
 
               <select
@@ -859,7 +767,7 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
                   setForm({ ...form, notes: event.target.value })
                 }
                 className="w-full rounded-2xl border border-[#e8eaf2] bg-[#fff8f5] p-3 text-sm font-semibold outline-none focus:border-[#e8453c]"
-                placeholder="Notes, content direction, caption draft, design direction, etc."
+                placeholder="Notes, caption draft, hook, design direction, etc."
                 rows={6}
               />
 
@@ -942,6 +850,192 @@ export default function IdeaLibrary({ onPostCreated }: IdeaLibraryProps) {
         </div>
       )}
     </section>
+  );
+}
+
+function IdeaTextCard({
+  idea,
+  draggedIdeaId,
+  setDraggedIdeaId,
+  openEditIdea,
+  openSchedulePopup,
+  deleteIdea,
+}: {
+  idea: ContentIdea;
+  draggedIdeaId: string | null;
+  setDraggedIdeaId: (id: string | null) => void;
+  openEditIdea: (idea: ContentIdea) => void;
+  openSchedulePopup: (idea: ContentIdea) => void;
+  deleteIdea: (id: string) => void;
+}) {
+  return (
+    <div
+      draggable
+      onDragStart={() => setDraggedIdeaId(idea.id)}
+      onDragEnd={() => setDraggedIdeaId(null)}
+      className={`cursor-move overflow-hidden rounded-2xl bg-white shadow-sm transition ${
+        draggedIdeaId === idea.id ? "opacity-50" : "opacity-100"
+      }`}
+    >
+      <div className="flex h-full">
+        <div
+          className={`w-2 shrink-0 bg-gradient-to-b ${programGradient(
+            idea.program
+          )}`}
+        />
+
+        <div className="flex flex-1 flex-col p-4">
+          <BadgeRow idea={idea} />
+
+          <h4 className="text-sm font-black leading-snug text-[#0d2560]">
+            {idea.title}
+          </h4>
+
+          {idea.description && (
+            <p className="mt-2 text-xs leading-relaxed text-[#777]">
+              {idea.description}
+            </p>
+          )}
+
+          {idea.notes && (
+            <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-[#f4f6fb] p-3 text-xs leading-relaxed text-[#444]">
+              {idea.notes}
+            </p>
+          )}
+
+          <CardActions
+            idea={idea}
+            openEditIdea={openEditIdea}
+            openSchedulePopup={openSchedulePopup}
+            deleteIdea={deleteIdea}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IdeaMoodCard({
+  idea,
+  draggedIdeaId,
+  setDraggedIdeaId,
+  openEditIdea,
+  openSchedulePopup,
+  deleteIdea,
+}: {
+  idea: ContentIdea;
+  draggedIdeaId: string | null;
+  setDraggedIdeaId: (id: string | null) => void;
+  openEditIdea: (idea: ContentIdea) => void;
+  openSchedulePopup: (idea: ContentIdea) => void;
+  deleteIdea: (id: string) => void;
+}) {
+  return (
+    <div
+      draggable
+      onDragStart={() => setDraggedIdeaId(idea.id)}
+      onDragEnd={() => setDraggedIdeaId(null)}
+      className={`mb-4 break-inside-avoid cursor-move overflow-hidden rounded-2xl bg-white shadow-sm transition ${
+        draggedIdeaId === idea.id ? "opacity-50" : "opacity-100"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => openEditIdea(idea)}
+        className="block w-full text-left"
+      >
+        {idea.image_url ? (
+          <img src={idea.image_url} alt={idea.title} className="w-full" />
+        ) : (
+          <div className="flex min-h-40 w-full items-center justify-center bg-[#d8d8d8] p-5 text-center text-sm font-bold text-[#777]">
+            No image uploaded
+          </div>
+        )}
+
+        <div className="p-4">
+          <BadgeRow idea={idea} />
+
+          <h4 className="text-sm font-black leading-snug text-[#0d2560]">
+            {idea.title}
+          </h4>
+        </div>
+      </button>
+
+      <div className="px-4 pb-4">
+        <CardActions
+          idea={idea}
+          openEditIdea={openEditIdea}
+          openSchedulePopup={openSchedulePopup}
+          deleteIdea={deleteIdea}
+        />
+      </div>
+    </div>
+  );
+}
+
+function BadgeRow({ idea }: { idea: ContentIdea }) {
+  return (
+    <div className="mb-2 flex flex-wrap gap-2">
+      <span
+        className={`rounded-full px-2 py-1 text-[9px] font-black ${programPill(
+          idea.program
+        )}`}
+      >
+        {idea.program || "Program"}
+      </span>
+
+      <span className="rounded-full bg-[#f4f6fb] px-2 py-1 text-[9px] font-black text-[#777]">
+        {idea.content_type || "Idea"}
+      </span>
+
+      <span className="rounded-full bg-[#0d2560]/10 px-2 py-1 text-[9px] font-black text-[#0d2560]">
+        {idea.idea_category || "Educational"}
+      </span>
+
+      <span className="rounded-full bg-[#25d366]/10 px-2 py-1 text-[9px] font-black text-[#128C7E]">
+        {idea.status || "Idea"}
+      </span>
+    </div>
+  );
+}
+
+function CardActions({
+  idea,
+  openEditIdea,
+  openSchedulePopup,
+  deleteIdea,
+}: {
+  idea: ContentIdea;
+  openEditIdea: (idea: ContentIdea) => void;
+  openSchedulePopup: (idea: ContentIdea) => void;
+  deleteIdea: (id: string) => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => openEditIdea(idea)}
+        className="rounded-xl bg-[#fff8f5] px-3 py-2 text-xs font-black text-[#e8453c] hover:bg-[#e8453c] hover:text-white"
+      >
+        Edit
+      </button>
+
+      <button
+        type="button"
+        onClick={() => openSchedulePopup(idea)}
+        className="rounded-xl bg-[#0d2560] px-3 py-2 text-xs font-black text-white hover:bg-[#e8453c]"
+      >
+        Move to Calendar
+      </button>
+
+      <button
+        type="button"
+        onClick={() => deleteIdea(idea.id)}
+        className="rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-500 hover:text-white"
+      >
+        Delete
+      </button>
+    </div>
   );
 }
 
